@@ -22,12 +22,12 @@ const HeaderThree = () => {
 
    const handleLogout = async () => {
       try {
-          await logout();
-          setNavClick(false);
+         await logout();
+         setNavClick(false);
       } catch (error) {
-          console.error('Logout error:', error);
+         console.error('Logout error:', error);
       }
-  };
+   };
 
    // Close dropdown when clicking outside
    useEffect(() => {
@@ -55,8 +55,8 @@ const HeaderThree = () => {
                      <div className="col-lg-7 col-5">
                         <div className="tgmenu__wrap d-flex align-items-center justify-space-between" style={{ justifyContent: "space-between" }}>
                            <div className="logo">
-                              <Link className="logo-1" to="/"><img src="/assets/img/logo/logo-white1.png" alt="Logo" /></Link>
-                              <Link className="logo-2 d-none" to="/"><img src="/assets/img/logo/logo-white1.png" alt="Logo" /></Link>
+                              <Link className="logo-1" to="/"><img style={{ height: "80px" }} src="/assets/img/logo/logo-white1.png" alt="Logo" /></Link>
+                              <Link className="logo-2 d-none" to="/"><img style={{ height: "70px" }} src="/assets/img/logo/logo-white1.png" alt="Logo" /></Link>
                            </div>
                            <nav className="tgmenu__nav tgmenu-1-space ml-180">
                               <div className="tgmenu__navbar-wrap tgmenu__main-menu d-none d-xl-flex">
@@ -86,15 +86,15 @@ const HeaderThree = () => {
                               </button>
                               <HeaderCart />
                            </div>
-                           {isAuthenticated ? 
+                           {isAuthenticated ?
                               <div className="tg-header-btn ml-20 d-none d-sm-block">
                                  <div className="tg-user-menu" ref={userMenuRef} style={{ position: 'relative' }}>
-                                    <button 
+                                    <button
                                        className="tg-btn-header user-menu-trigger"
                                        onClick={() => setNavClick(!navClick)}
-                                       style={{ 
-                                          background: 'none', 
-                                          border: 'none', 
+                                       style={{
+                                          background: 'none',
+                                          border: 'none',
                                           cursor: 'pointer',
                                           display: 'flex',
                                           alignItems: 'center',
@@ -126,8 +126,8 @@ const HeaderThree = () => {
                                        }}>
                                           {isAdmin && (
                                              <li>
-                                                <Link 
-                                                   to="/dashboard" 
+                                                <Link
+                                                   to="/dashboard"
                                                    onClick={() => setNavClick(false)}
                                                    style={{
                                                       display: 'block',
@@ -146,8 +146,8 @@ const HeaderThree = () => {
                                           )}
                                           {isAgent && (
                                              <li>
-                                                <Link 
-                                                   to="/agent-dashboard" 
+                                                <Link
+                                                   to="/agent-dashboard"
                                                    onClick={() => setNavClick(false)}
                                                    style={{
                                                       display: 'block',
@@ -165,12 +165,12 @@ const HeaderThree = () => {
                                              </li>
                                           )}
                                           <li>
-                                             <button 
+                                             <button
                                                 onClick={handleLogout}
-                                                style={{ 
-                                                   background: 'none', 
-                                                   border: 'none', 
-                                                   color: '#333', 
+                                                style={{
+                                                   background: 'none',
+                                                   border: 'none',
+                                                   color: '#333',
                                                    cursor: 'pointer',
                                                    width: '100%',
                                                    textAlign: 'left',
@@ -188,14 +188,14 @@ const HeaderThree = () => {
                                     )}
                                  </div>
                               </div>
-                            : <div className="tg-header-btn ml-20 d-none d-sm-block">
-                              <Link className="tg-btn-header" to="/login">
-                                 <span>
-                                    <UserIcon />
-                                 </span>
-                                 Login
-                              </Link>
-                           </div>}
+                              : <div className="tg-header-btn ml-20 d-none d-sm-block">
+                                 <Link className="tg-btn-header" to="/login">
+                                    <span>
+                                       <UserIcon />
+                                    </span>
+                                    Login
+                                 </Link>
+                              </div>}
                            <div className="tg-header-menu-bar lh-1 p-relative ml-20 pl-20">
                               <span className="tg-header-border d-none d-xl-block"></span>
                               <button onClick={() => setSidebar(true)} style={{ cursor: "pointer" }} className="tgmenu-offcanvas-open-btn menu-tigger d-none d-xl-block">

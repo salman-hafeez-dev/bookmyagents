@@ -21,12 +21,12 @@ const HomeThree = () => {
             <BannerFormThree />
             <About />
             <Listing />
-            <Choose />
-            <CtaThree />
+            {/* <Choose /> */}
+            {/* <CtaThree /> */}
             <Location />
-            <CtaTwo />
-            <Testimonial />
-            <Blog />
+            {/* <CtaTwo /> */}
+            {/* <Testimonial /> */}
+            {/* <Blog /> */}
             {/* <Cta /> */}
          </main>
          <FooterThree />
