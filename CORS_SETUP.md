@@ -4,7 +4,7 @@ This guide shows how to configure CORS (Cross-Origin Resource Sharing) for your 
 
 ## Backend CORS Configuration
 
-### For Express.js (Node.js)
+### For Express.js (Node.js).
 
 ```javascript
 const express = require('express');
