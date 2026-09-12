@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { subscriptionService, type Subscription } from '../../../services/subscriptionService';
 import { userService } from '../../../services/userService';
 import { type User } from '../../../services/authService';
+import { CardSkeleton } from '../../dashboard-admin/Skeleton';
+import ModalPortal from '../../common/ModalPortal';
 
 interface UserSubscriptionModalProps {
   user: User | null;
@@ -51,7 +53,7 @@ const UserSubscriptionModal: React.FC<UserSubscriptionModalProps> = ({
   const fetchData = async () => {
     setLoading(true);
     setError(null);
-    
+
     try {
       // Fetch all available subscriptions
       const subscriptionsResponse = await subscriptionService.getSubscriptions();
@@ -122,8 +124,9 @@ const UserSubscriptionModal: React.FC<UserSubscriptionModalProps> = ({
   console.log("setShowCancelModal", setShowCancelModal);
 
   return (
-    <div 
-      className="modal fade show d-block modern-modal-overlay" 
+    <ModalPortal>
+    <div
+      className="modal fade show d-block modern-modal-overlay"
       onClick={handleBackdropClick}
     >
       <div className="modal-dialog modal-xl modern-modal-dialog">
@@ -131,7 +134,7 @@ const UserSubscriptionModal: React.FC<UserSubscriptionModalProps> = ({
           <div className="modal-header modern-modal-header">
             <div className="modal-title-section">
               <div className="title-icon">
-                <i className="fas fa-crown" style={{color: '#667eea'}}></i>
+                <i className="fas fa-crown" style={{ color: '#667eea' }}></i>
               </div>
               <div className="title-content">
                 <h4 className="modal-title">Subscription Management</h4>
@@ -150,19 +153,14 @@ const UserSubscriptionModal: React.FC<UserSubscriptionModalProps> = ({
               <i className="fas fa-times"></i>
             </button>
           </div>
-          
+
           <div className="modal-body modern-modal-body">
             {loading ? (
-              <div className="loading-container">
-                <div className="modern-spinner">
-                  <div className="spinner-ring"></div>
-                </div>
-                <p className="loading-text">Loading subscription data...</p>
-              </div>
+              <CardSkeleton count={3} />
             ) : (
-                <>
-                  {/* Current Subscription Section */}
-                  {/* <div className="current-subscription-section">
+              <>
+                {/* Current Subscription Section */}
+                {/* <div className="current-subscription-section">
                     <div className="section-header">
                       <h5 className="section-title">
                         <i className="fas fa-shield-alt me-2"></i>
@@ -237,87 +235,86 @@ const UserSubscriptionModal: React.FC<UserSubscriptionModalProps> = ({
                       Choose New Plan
                     </h5>
                     <p className="section-subtitle">
-                      {currentSubscription 
-                        ? "Select a different subscription plan to change the agent's current plan" 
+                      {currentSubscription
+                        ? "Select a different subscription plan to change the agent's current plan"
                         : "Select a subscription plan to assign to this agent"
                       }
                     </p>
                   </div>
-                  
+
                   <div className="plans-grid">
                     {subscriptions.map((subscription) => {
                       const isCurrentPlan = currentSubscription && currentSubscription._id === subscription._id;
                       const isDisabled = isCurrentPlan;
-                      
+
                       return (
                         <div key={subscription._id} className="plan-card-wrapper">
-                          <div 
-                            className={`modern-plan-card ${
-                              selectedSubscriptionId === subscription._id ? 'selected' : ''
-                            } ${subscription.isPopular ? 'popular' : ''} ${isDisabled ? 'disabled' : ''}`}
+                          <div
+                            className={`modern-plan-card ${selectedSubscriptionId === subscription._id ? 'selected' : ''
+                              } ${subscription.isPopular ? 'popular' : ''} ${isDisabled ? 'disabled' : ''}`}
                             onClick={() => !isDisabled && setSelectedSubscriptionId(subscription._id)}
                           >
-                          {isCurrentPlan && (
-                            <div className="current-plan-badge">
-                              <i className="fas fa-check-circle me-1"></i>
-                              Current Plan
+                            {isCurrentPlan && (
+                              <div className="current-plan-badge">
+                                <i className="fas fa-check-circle me-1"></i>
+                                Current Plan
+                              </div>
+                            )}
+                            {subscription.isPopular && !isCurrentPlan && (
+                              <div className="popular-badge">
+                                <i className="fas fa-star me-1"></i>
+                                Most Popular
+                              </div>
+                            )}
+
+                            <div className="plan-card-header">
+                              <div className="plan-icon">
+                                <i className="fas fa-gem"></i>
+                              </div>
+                              <h6 className="plan-name">{subscription.name}</h6>
                             </div>
-                          )}
-                          {subscription.isPopular && !isCurrentPlan && (
-                            <div className="popular-badge">
-                              <i className="fas fa-star me-1"></i>
-                              Most Popular
+
+                            <div className="plan-pricing">
+                              <div className="price-display">
+                                <span className="currency">$</span>
+                                <span className="amount">{subscription.price}</span>
+                                <span className="period">/{subscription.duration}</span>
+                              </div>
                             </div>
-                          )}
-                          
-                          <div className="plan-card-header">
-                            <div className="plan-icon">
-                              <i className="fas fa-gem"></i>
+
+                            <div className="plan-features">
+                              <div className="feature-item">
+                                <i className="fas fa-check text-success me-2"></i>
+                                <span>Premium Features</span>
+                              </div>
+                              <div className="feature-item">
+                                <i className="fas fa-check text-success me-2"></i>
+                                <span>Priority Support</span>
+                              </div>
+                              <div className="feature-item">
+                                <i className="fas fa-check text-success me-2"></i>
+                                <span>Advanced Tools</span>
+                              </div>
                             </div>
-                            <h6 className="plan-name">{subscription.name}</h6>
-                          </div>
-                          
-                          <div className="plan-pricing">
-                            <div className="price-display">
-                              <span className="currency">$</span>
-                              <span className="amount">{subscription.price}</span>
-                              <span className="period">/{subscription.duration}</span>
-                            </div>
-                          </div>
-                          
-                          <div className="plan-features">
-                            <div className="feature-item">
-                              <i className="fas fa-check text-success me-2"></i>
-                              <span>Premium Features</span>
-                            </div>
-                            <div className="feature-item">
-                              <i className="fas fa-check text-success me-2"></i>
-                              <span>Priority Support</span>
-                            </div>
-                            <div className="feature-item">
-                              <i className="fas fa-check text-success me-2"></i>
-                              <span>Advanced Tools</span>
-                            </div>
-                          </div>
-                          
-                          <div className="plan-selection">
-                            <div className="selection-indicator">
-                              {isDisabled ? (
-                                <div className="disabled-indicator">
-                                  <i className="fas fa-lock"></i>
-                                  <span>Current Plan</span>
-                                </div>
-                              ) : (
-                                <div className={`radio-button ${selectedSubscriptionId === subscription._id ? 'selected' : ''}`}>
-                                  {selectedSubscriptionId === subscription._id && (
-                                    <i className="fas fa-check"></i>
-                                  )}
-                                </div>
-                              )}
+
+                            <div className="plan-selection">
+                              <div className="selection-indicator">
+                                {isDisabled ? (
+                                  <div className="disabled-indicator">
+                                    <i className="fas fa-lock"></i>
+                                    <span>Current Plan</span>
+                                  </div>
+                                ) : (
+                                  <div className={`radio-button ${selectedSubscriptionId === subscription._id ? 'selected' : ''}`}>
+                                    {selectedSubscriptionId === subscription._id && (
+                                      <i className="fas fa-check"></i>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
                             </div>
                           </div>
                         </div>
-                      </div>
                       );
                     })}
                   </div>
@@ -350,10 +347,10 @@ const UserSubscriptionModal: React.FC<UserSubscriptionModalProps> = ({
               </div>
             </div> */}
           </div>
-          
+
           <div className="modal-footer modern-modal-footer">
             <div className="footer-actions">
-              
+
               {currentSubscription && (
                 <button
                   type="button"
@@ -424,12 +421,12 @@ const UserSubscriptionModal: React.FC<UserSubscriptionModalProps> = ({
                   <i className="fas fa-times"></i>
                 </button>
               </div>
-              
+
               <div className="modal-body cancel-confirmation-body">
                 <div className="confirmation-content">
                   <h6>Are you sure you want to cancel this subscription?</h6>
                   <p>
-                    This action will immediately remove the agent's access to premium features. 
+                    This action will immediately remove the agent's access to premium features.
                     The agent will lose access to:
                   </p>
                   <ul className="feature-list">
@@ -443,7 +440,7 @@ const UserSubscriptionModal: React.FC<UserSubscriptionModalProps> = ({
                   </div>
                 </div>
               </div>
-              
+
               <div className="modal-footer cancel-confirmation-footer">
                 <button
                   type="button"
@@ -477,6 +474,7 @@ const UserSubscriptionModal: React.FC<UserSubscriptionModalProps> = ({
         </div>
       )}
     </div>
+    </ModalPortal>
   );
 };
 

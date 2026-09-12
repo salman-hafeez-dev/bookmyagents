@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '../../../contexts/AuthContext';
 import { blogService } from '../../../services/blogService';
 import { type Blog, type BlogFilters, type BlogStats } from '../../../types/blog';
@@ -6,16 +6,17 @@ import AgentBlogList from './AgentBlogList';
 import AgentBlogDetail from './AgentBlogDetail';
 import AgentBlogForm from './AgentBlogForm';
 import BlogStatsCard from './BlogStatsCard';
+import { useGetAgentBlogsQuery } from '../../../redux/api/dashboardApi';
 
 type ActiveView = 'list' | 'detail' | 'create' | 'edit';
 
 const AgentBlogManagement: React.FC = () => {
     const { user } = useAuth();
     const [activeView, setActiveView] = useState<ActiveView>('list');
-    const [blogs, setBlogs] = useState<Blog[]>([]);
     const [selectedBlog, setSelectedBlog] = useState<Blog | null>(null);
-    const [loading, setLoading] = useState(false);
-    const [stats, setStats] = useState<BlogStats | null>(null);
+    // Stats were never actually wired up for agents (fetchStats was
+    // dead/commented-out code before this refactor) — preserved as-is.
+    const [stats] = useState<BlogStats | null>(null);
     const [filters, setFilters] = useState<BlogFilters>({
         page: 1,
         limit: 10,
@@ -23,62 +24,20 @@ const AgentBlogManagement: React.FC = () => {
         search: ''
     });
 
-    // console.log("filters", filters);
-    console.log("user", user);
-    const [pagination, setPagination] = useState({
-        total: 0,
-        page: 1,
-        limit: 10,
-        totalPages: 0
-    });
-
-    useEffect(() => {
-        if (user?._id) {
-            fetchBlogs();
-            // fetchStats();
+    const {
+        data: blogsResponse,
+        isFetching: loading,
+        refetch: refetchBlogs,
+    } = useGetAgentBlogsQuery(filters, { skip: !user?._id });
+    const blogs = blogsResponse?.data.blogs || [];
+    const pagination = blogsResponse?.data.pagination
+        ? {
+            total: blogsResponse.data.pagination.total,
+            page: blogsResponse.data.pagination.page,
+            limit: blogsResponse.data.pagination.limit,
+            totalPages: blogsResponse.data.pagination.pages,
         }
-    }, [filters, user?._id]);
-
-    const fetchBlogs = async () => {
-        if (!user?._id) return;
-
-        try {
-            setLoading(true);
-            const response = await blogService.getAgentBlogs(filters);
-            console.log("Agent blogs response", response.data);
-            setBlogs(response.data.blogs);
-            setPagination({
-                total: response.data.pagination.total,
-                page: response.data.pagination.page,
-                limit: response.data.pagination.limit,
-                totalPages: response.data.pagination.pages
-            });
-        } catch (error) {
-            console.error('Error fetching agent blogs:', error);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const fetchStats = async () => {
-        if (!user?._id) return;
-
-        try {
-            const response = await blogService.getBlogStats();
-            // Filter stats to show only current user's blogs
-            const userStats = {
-                ...response,
-                totalBlogs: blogs.length,
-                pendingBlogs: blogs.filter(b => b.status === 'pending').length,
-                approvedBlogs: blogs.filter(b => b.status === 'approved').length,
-                rejectedBlogs: blogs.filter(b => b.status === 'rejected').length,
-                publishedBlogs: blogs.filter(b => b.isPublished).length
-            };
-            setStats(userStats);
-        } catch (error) {
-            console.error('Error fetching stats:', error);
-        }
-    };
+        : { total: 0, page: 1, limit: 10, totalPages: 0 };
 
     const handleDeleteBlog = async (blogId: string) => {
         if (!window.confirm('Are you sure you want to delete this blog? This action cannot be undone.')) {
@@ -87,8 +46,7 @@ const AgentBlogManagement: React.FC = () => {
 
         try {
             await blogService.deletePublicBlog(blogId);
-            await fetchBlogs();
-            await fetchStats();
+            refetchBlogs();
         } catch (error) {
             console.error('Error deleting blog:', error);
         }
@@ -117,8 +75,7 @@ const AgentBlogManagement: React.FC = () => {
     const handleBlogSaved = () => {
         setActiveView('list');
         setSelectedBlog(null);
-        fetchBlogs();
-        fetchStats();
+        refetchBlogs();
     };
 
     const handleFilterChange = (newFilters: Partial<BlogFilters>) => {

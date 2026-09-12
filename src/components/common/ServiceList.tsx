@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { type Service } from '../../types/service';
+import { CardSkeleton } from '../dashboard-admin/Skeleton';
 
 interface ServiceListProps {
   services: Service[];
@@ -44,14 +45,7 @@ const ServiceList: React.FC<ServiceListProps> = ({ services, onEdit, onDelete, i
   };
 
   if (isLoading) {
-    return (
-      <div className="text-center py-5">
-        <div className="spinner-border text-primary" role="status">
-          <span className="visually-hidden">Loading services...</span>
-        </div>
-        <p className="mt-3 text-muted">Loading services...</p>
-      </div>
-    );
+    return <CardSkeleton count={6} />;
   }
 
   if (services.length === 0) {

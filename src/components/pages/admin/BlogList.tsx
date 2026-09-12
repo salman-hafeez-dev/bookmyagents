@@ -1,5 +1,6 @@
 import React from 'react';
 import { type Blog, type BlogFilters } from '../../../types/blog';
+import { TableSkeleton } from '../../dashboard-admin/Skeleton';
 
 interface BlogListProps {
     blogs: Blog[];
@@ -106,11 +107,7 @@ const BlogList: React.FC<BlogListProps> = ({
 
             <div className="card-body">
                 {loading ? (
-                    <div className="text-center py-4">
-                        <div className="spinner-border" role="status">
-                            <span className="visually-hidden">Loading...</span>
-                        </div>
-                    </div>
+                    <TableSkeleton rows={5} columns={5} />
                 ) : blogs.length === 0 ? (
                     <div className="text-center py-5">
                         <div className="mb-4">

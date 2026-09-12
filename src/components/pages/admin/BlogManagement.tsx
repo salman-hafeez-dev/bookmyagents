@@ -1,19 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { blogService } from '../../../services/blogService';
-import { type Blog, type BlogFilters, type BlogStats } from '../../../types/blog';
+import { type Blog, type BlogFilters } from '../../../types/blog';
 import BlogList from './BlogList';
 import BlogDetail from './BlogDetail';
 import BlogStatsCard from './BlogStatsCard';
 import BlogForm from './BlogForm';
+import { useGetAdminBlogsQuery, useGetBlogStatsQuery } from '../../../redux/api/dashboardApi';
 
 type ActiveView = 'list' | 'detail' | 'create' | 'edit';
 
 const BlogManagement: React.FC = () => {
     const [activeView, setActiveView] = useState<ActiveView>('list');
-    const [blogs, setBlogs] = useState<Blog[]>([]);
     const [selectedBlog, setSelectedBlog] = useState<Blog | null>(null);
-    const [loading, setLoading] = useState(false);
-    const [stats, setStats] = useState<BlogStats | null>(null);
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
     const [filters, setFilters] = useState<BlogFilters>({
         page: 1,
@@ -22,51 +20,29 @@ const BlogManagement: React.FC = () => {
         author: undefined,
         search: ''
     });
-    const [pagination, setPagination] = useState({
-        total: 0,
-        page: 1,
-        limit: 10,
-        totalPages: 0
-    });
 
-    useEffect(() => {
-        fetchBlogs();
-        fetchStats();
-    }, [filters]);
-
-    const fetchBlogs = async () => {
-        try {
-            setLoading(true);
-            const response = await blogService.getAdminBlogs(filters);
-            console.log("response", response.data);
-            setBlogs(response.data.blogs);
-            setPagination({
-                total: response.data.pagination.total,
-                page: response.data.pagination.page,
-                limit: response.data.pagination.limit,
-                totalPages: response.data.pagination.pages
-            });
-        } catch (error) {
-            console.error('Error fetching blogs:', error);
-        } finally {
-            setLoading(false);
+    const {
+        data: blogsResponse,
+        isFetching: loading,
+        refetch: refetchBlogs,
+    } = useGetAdminBlogsQuery(filters);
+    const blogs = blogsResponse?.data.blogs || [];
+    const pagination = blogsResponse?.data.pagination
+        ? {
+            total: blogsResponse.data.pagination.total,
+            page: blogsResponse.data.pagination.page,
+            limit: blogsResponse.data.pagination.limit,
+            totalPages: blogsResponse.data.pagination.pages,
         }
-    };
+        : { total: 0, page: 1, limit: 10, totalPages: 0 };
 
-    const fetchStats = async () => {
-        try {
-            const response = await blogService.getBlogStats();
-            setStats(response);
-        } catch (error) {
-            console.error('Error fetching stats:', error);
-        }
-    };
+    const { data: stats, refetch: refetchStats } = useGetBlogStatsQuery();
 
     const handleApprove = async (blogId: string) => {
         try {
             await blogService.approveBlog(blogId);
-            await fetchBlogs();
-            await fetchStats();
+            refetchBlogs();
+            refetchStats();
             // Show success message
             setSuccessMessage('Blog approved successfully!');
             // Redirect back to list view
@@ -82,8 +58,8 @@ const BlogManagement: React.FC = () => {
     const handleReject = async (blogId: string) => {
         try {
             await blogService.rejectBlog(blogId);
-            await fetchBlogs();
-            await fetchStats();
+            refetchBlogs();
+            refetchStats();
             // Show success message
             setSuccessMessage('Blog rejected successfully!');
             // Redirect back to list view
@@ -119,8 +95,8 @@ const BlogManagement: React.FC = () => {
     const handleBlogSaved = () => {
         setActiveView('list');
         setSelectedBlog(null);
-        fetchBlogs();
-        fetchStats();
+        refetchBlogs();
+        refetchStats();
     };
 
     const handleFilterChange = (newFilters: Partial<BlogFilters>) => {

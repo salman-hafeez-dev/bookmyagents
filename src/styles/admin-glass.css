@@ -1,0 +1,706 @@
+/*
+ * Admin/Agent Dashboard glassmorphism system.
+ * Scoped entirely under .admin-shell so it never affects any
+ * non-admin page (marketing, login, register, profile, etc).
+ */
+
+.admin-shell {
+  --glass-bg: rgba(255, 255, 255, 0.52);
+  --glass-bg-soft: rgba(255, 255, 255, 0.35);
+  --glass-bg-strong: rgba(255, 255, 255, 0.78);
+  --glass-bg-shell: rgba(255, 255, 255, 0.52);
+  --glass-bg-sidebar: rgba(255, 255, 255, 0.28);
+  --glass-bg-input: rgba(255, 255, 255, 0.45);
+  --glass-border: rgba(255, 255, 255, 0.58);
+  --glass-border-input: rgba(17, 24, 39, 0.16);
+  --glass-blur: 24px;
+
+  --admin-primary: #2F80ED;
+  --admin-primary-dark: #287be5;
+  --admin-nav-active-start: #3b82f6;
+  --admin-nav-active-end: #287be5;
+  --admin-success: #22B573;
+  --admin-danger: #EF5350;
+  --admin-warning: #F5A623;
+
+  --admin-text-primary: #171A1F;
+  --admin-text-secondary: #6B7280;
+
+  --admin-radius-sm: 9px;
+  --admin-radius-md: 14px;
+  --admin-radius-lg: 18px;
+  --admin-radius-xl: 24px;
+
+  --admin-shadow-glass: 0 8px 32px rgba(31, 38, 135, 0.08);
+  --admin-shadow-elevated: 0 16px 40px rgba(31, 38, 135, 0.12);
+  /* Lighter, smaller-radius shadows for elements that repeat many
+     times on a page (KPI cards, inner panels) — a large blur radius
+     on many stacked elements is expensive to rasterize every frame. */
+  --admin-shadow-light: 0 4px 12px rgba(31, 38, 135, 0.07);
+  --admin-shadow-light-hover: 0 6px 16px rgba(31, 38, 135, 0.10);
+
+  position: relative;
+  isolation: isolate;
+  color: var(--admin-text-primary);
+
+  /* Fills whatever's left of the viewport below InnerHeader (its
+     parent, .admin-fixed-viewport, is the fixed-height flex column) so
+     that only .admin-content scrolls — header/sidebar never move. */
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Wraps InnerHeader + this shell on the dashboard pages only. Locks the
+   whole thing to the viewport height so the browser/page never gets its
+   own scrollbar — scrolling happens only inside .admin-content below. */
+.admin-fixed-viewport {
+  height: 100vh;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.admin-fixed-viewport>header,
+.admin-fixed-viewport>.admin-fixed-viewport-header {
+  flex: 0 0 auto;
+}
+
+/* ---------- Background atmosphere ---------- */
+
+.admin-shell-bg {
+  /* Stays position: absolute, confined to .admin-shell's own box (which
+     sits below the site's InnerHeader in normal flow) — NOT
+     position: fixed. A fixed box with inset:0 spans the full viewport,
+     including the header/footer's screen space, and because .admin-shell
+     forms its own stacking context (isolation: isolate) it paints as one
+     unit in front of those plain in-flow siblings, which silently hid
+     the header and footer behind this background layer.
+     background-attachment: fixed below gets the "don't recompute the
+     gradient position on scroll" perf win without moving the box itself
+     out of its normal, non-overlapping position. */
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(circle at 18% 78%, rgba(211, 95, 255, 0.22), transparent 42%),
+    radial-gradient(circle at 62% 6%, rgba(89, 122, 255, 0.20), transparent 42%),
+    radial-gradient(circle at 92% 68%, rgba(85, 220, 190, 0.20), transparent 42%),
+    radial-gradient(circle at 40% 40%, rgba(255, 176, 120, 0.14), transparent 45%),
+    #eef0f4;
+  background-attachment: fixed;
+  will-change: transform;
+  transform: translateZ(0);
+}
+
+/* ---------- Outer margin wrapper ---------- */
+
+.admin-shell-inner {
+  max-width: 1680px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 24px 28px;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+@media (max-width: 991.98px) {
+  .admin-shell-inner {
+    padding: 14px 14px;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .admin-shell-inner {
+    padding: 10px 8px;
+  }
+}
+
+/* ---------- Unified glass application shell frame ---------- */
+/* Sidebar + header + content all live inside ONE translucent shell,
+   per DESIGN.md section 8 - not three separate floating cards. */
+
+.admin-shell-frame {
+  display: flex;
+  align-items: stretch;
+  flex: 1 1 auto;
+  min-height: 0;
+  /* No backdrop-filter here on purpose — this element directly contains
+     .admin-content, the scrolling region. A backdrop-filter has to
+     resample whatever is behind it on every repaint of its own subtree,
+     so wrapping the scroll container in one was the actual cause of the
+     laggy scroll: every scroll tick re-triggered a full blur recompute.
+     The blur now lives only on .admin-sidebar/.admin-header below, which
+     never scroll. This flat, slightly-higher-opacity tint sits directly
+     on the already-blurred/gradient .admin-shell-bg behind it, so it
+     still reads as glass without paying for blur on every frame. */
+  background: rgba(255, 255, 255, 0.62);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--admin-radius-xl);
+  box-shadow: var(--admin-shadow-glass);
+  overflow: hidden;
+  transform: translateZ(0);
+  will-change: transform;
+}
+
+.admin-main {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* The ONLY scrollable region in the dashboard. Header and sidebar sit
+   outside this element (as flex siblings/ancestors with flex: 0 0 auto),
+   so they never move — only this content area scrolls when it's taller
+   than the available space. */
+.admin-content {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 26px 28px 36px;
+}
+
+/* ---------- Sidebar (glass layer within the shell, per hierarchy) ---------- */
+
+.admin-sidebar {
+  width: 260px;
+  flex: 0 0 260px;
+  background: var(--glass-bg-sidebar);
+  border-right: 1px solid rgba(255, 255, 255, 0.45);
+  padding: 22px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  /* Fixed/stable per the required layout — it doesn't scroll with the
+     content; if its own nav list ever grows taller than the viewport,
+     it scrolls internally rather than pushing the sidebar's own bounds
+     around or forcing a page scrollbar. */
+  overflow-y: auto;
+  /* Moved here from .admin-shell-frame: this element never contains the
+     scrolling content, so its blur is cheap — computed once and left
+     alone while .admin-content scrolls next to it. */
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  transform: translateZ(0);
+  will-change: transform;
+}
+
+.admin-sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 8px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.45);
+}
+
+.admin-sidebar-brand img {
+  height: 30px;
+  width: auto;
+}
+
+.admin-sidebar-brand span {
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: 0.2px;
+  color: var(--admin-text-primary);
+}
+
+.admin-sidebar-close {
+  display: none;
+  margin-left: auto;
+  background: none;
+  border: none;
+  font-size: 18px;
+  color: var(--admin-text-secondary);
+  cursor: pointer;
+}
+
+.admin-nav-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.admin-nav-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 14px;
+  border: none;
+  border-radius: var(--admin-radius-md);
+  background: transparent;
+  color: var(--admin-text-secondary);
+  font-size: 14px;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  transition: background .2s ease, color .2s ease, box-shadow .2s ease, transform .15s ease;
+}
+
+.admin-nav-item i {
+  width: 18px;
+  text-align: center;
+  font-size: 15px;
+}
+
+.admin-nav-item:hover {
+  background: rgba(255, 255, 255, 0.45);
+  color: var(--admin-text-primary);
+}
+
+.admin-nav-item.active {
+  background: linear-gradient(135deg, var(--admin-nav-active-start), var(--admin-nav-active-end));
+  color: #fff;
+  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.28);
+}
+
+.admin-nav-item.active:hover {
+  transform: none;
+}
+
+/* ---------- Sidebar mobile drawer ---------- */
+/* Below 992px the sidebar detaches from the shell frame and becomes
+   its own standalone glass drawer, since it's no longer visually
+   continuous with the rest of the shell. */
+
+.admin-sidebar-backdrop {
+  display: none;
+}
+
+@media (max-width: 991.98px) {
+  .admin-shell-frame {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    /* transform (added for GPU-accelerated blur on desktop) makes this
+       element a containing block for position:fixed descendants — which
+       would clip the fixed mobile sidebar drawer to this frame's
+       overflow:hidden bounds instead of letting it escape to the
+       viewport. Cancel it at this breakpoint so the drawer still works. */
+    transform: none;
+    will-change: auto;
+  }
+
+  .admin-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    z-index: 1050;
+    width: 280px;
+    flex-basis: 280px;
+    border-right: none;
+    border-radius: 0 var(--admin-radius-xl) var(--admin-radius-xl) 0;
+    box-shadow: var(--admin-shadow-elevated);
+    transform: translateX(-100%);
+    transition: transform .25s ease;
+    background: rgba(255, 255, 255, 0.68);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    will-change: transform, backdrop-filter;
+  }
+
+  .admin-sidebar.is-open {
+    transform: translateX(0);
+  }
+
+  .admin-sidebar-close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .admin-sidebar-backdrop.is-open {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 1040;
+    background: rgba(20, 25, 40, 0.20);
+    backdrop-filter: blur(2px);
+  }
+}
+
+/* ---------- Header (integrated top bar inside the shell) ---------- */
+
+.admin-header {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  background: rgba(255, 255, 255, 0.45);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.45);
+  padding: 20px 28px;
+  /* Moved here from .admin-shell-frame: the header never scrolls (it's
+     flex: 0 0 auto, a sibling of the scrolling .admin-content), so its
+     blur is computed once and left alone. Background opacity bumped up
+     from 0.18 since it previously relied on the frame's blur showing
+     through underneath it. */
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  transform: translateZ(0);
+  will-change: transform;
+}
+
+.admin-header-menu-btn {
+  display: none;
+  background: var(--glass-bg-input);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--admin-radius-sm);
+  width: 38px;
+  height: 38px;
+  align-items: center;
+  justify-content: center;
+  color: var(--admin-text-primary);
+  cursor: pointer;
+  flex: 0 0 auto;
+}
+
+@media (max-width: 991.98px) {
+  .admin-header-menu-btn {
+    display: inline-flex;
+  }
+}
+
+.admin-header-titles {
+  min-width: 0;
+}
+
+.admin-header-title {
+  font-size: 22px;
+  font-weight: 700;
+  margin: 0 0 2px;
+  color: var(--admin-text-primary);
+  line-height: 1.25;
+}
+
+.admin-header-subtitle {
+  font-size: 13.5px;
+  font-weight: 400;
+  margin: 0;
+  color: var(--admin-text-secondary);
+}
+
+.admin-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 575.98px) {
+  .admin-header {
+    padding: 16px 18px;
+  }
+
+  .admin-header-title {
+    font-size: 19px;
+  }
+
+  .admin-content {
+    padding: 18px 16px 28px;
+  }
+}
+
+/* ---------- Restyle existing dashboard building blocks, scoped ---------- */
+
+/* KPI/dashboard cards are repeated many times per page (stats cards,
+   blog stat cards, table card wrappers). Blurring each one individually
+   means the browser has to rasterize N separate blur layers on every
+   scroll/resize frame, which is what caused the jitter. The macro shell
+   (.admin-shell-frame) already blurs the background once behind
+   everything, so these just need a plain semi-transparent tint sitting
+   on top of that existing blur — no per-card backdrop-filter needed. */
+.admin-shell .stats-card,
+.admin-shell .card,
+.admin-shell .dashboard-card {
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--admin-radius-lg);
+  box-shadow: var(--admin-shadow-light);
+}
+
+/* KPI cards: left-aligned, metric-first, subtle icon instead of a
+   large solid gradient circle. No trend % is added here — the
+   current API responses carry no period-over-period comparison
+   data, and DESIGN.md explicitly forbids fabricating one. */
+.admin-shell .stats-card {
+  position: relative;
+  align-items: flex-start;
+  text-align: left;
+  padding: 22px 24px;
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+
+.admin-shell .stats-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--admin-shadow-light-hover);
+}
+
+.admin-shell .stats-icon {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  width: 34px;
+  height: 34px;
+  margin-right: 0;
+  background: rgba(47, 128, 237, 0.12);
+  box-shadow: none;
+}
+
+.admin-shell .stats-icon i {
+  font-size: 14px;
+  color: var(--admin-primary);
+}
+
+.admin-shell .stats-content {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 4px;
+  width: 100%;
+  padding-right: 40px;
+}
+
+.admin-shell .stats-content h3 {
+  font-size: 34px;
+  font-weight: 700;
+  color: var(--admin-text-primary);
+  margin: 0;
+  line-height: 1.1;
+}
+
+.admin-shell .stats-content p {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--admin-text-secondary);
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: .03em;
+}
+
+/* Reusable trend-indicator pattern, ready for real data whenever an
+   endpoint provides a period-over-period comparison. Unused until then. */
+.admin-shell .stats-trend {
+  font-size: 12.5px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.admin-shell .stats-trend.up {
+  color: var(--admin-success);
+}
+
+.admin-shell .stats-trend.down {
+  color: var(--admin-danger);
+}
+
+.admin-shell .dashboard-card .card-header {
+  background: var(--glass-bg-soft);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.45);
+  border-radius: var(--admin-radius-lg) var(--admin-radius-lg) 0 0;
+}
+
+.admin-shell .nav-pills .nav-link {
+  border-radius: var(--admin-radius-sm);
+  color: var(--admin-text-secondary);
+  transition: background .2s ease, color .2s ease;
+}
+
+.admin-shell .nav-pills .nav-link:hover {
+  background: rgba(255, 255, 255, 0.45);
+}
+
+.admin-shell .nav-pills .nav-link.active {
+  background: linear-gradient(135deg, var(--admin-nav-active-start), var(--admin-nav-active-end));
+  color: #fff;
+  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.28);
+}
+
+.admin-shell .table-responsive {
+  background: var(--glass-bg-soft);
+  border-radius: var(--admin-radius-md);
+  padding: 4px;
+}
+
+.admin-shell .table {
+  margin-bottom: 0;
+}
+
+.admin-shell .table thead th {
+  background: var(--glass-bg-soft);
+  color: var(--admin-text-secondary);
+  font-size: 12.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .03em;
+  border-bottom: none;
+}
+
+.admin-shell .table tbody tr {
+  transition: background .2s ease;
+}
+
+.admin-shell .table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.28);
+}
+
+.admin-shell .table td,
+.admin-shell .table th {
+  border-color: rgba(0, 0, 0, 0.06);
+}
+
+.admin-shell .badge {
+  border-radius: 7px;
+  font-weight: 500;
+  padding: 4px 10px;
+}
+
+.admin-shell .btn-primary {
+  background: var(--admin-primary);
+  border-color: var(--admin-primary);
+  border-radius: var(--admin-radius-sm);
+  box-shadow: 0 6px 16px rgba(47, 128, 237, 0.18);
+}
+
+.admin-shell .btn-primary:hover,
+.admin-shell .btn-primary:focus {
+  background: var(--admin-primary-dark);
+  border-color: var(--admin-primary-dark);
+}
+
+.admin-shell .btn-secondary,
+.admin-shell .btn-outline-secondary {
+  background: var(--glass-bg-input);
+  border: 1px solid var(--glass-border);
+  color: var(--admin-text-primary);
+}
+
+.admin-shell .btn-secondary:hover,
+.admin-shell .btn-outline-secondary:hover {
+  background: rgba(255, 255, 255, 0.60);
+  color: var(--admin-text-primary);
+}
+
+.admin-shell .btn {
+  transition: background .2s ease, box-shadow .2s ease, transform .2s ease;
+}
+
+.admin-shell .form-control,
+.admin-shell .form-select {
+  background: var(--glass-bg-input);
+  border: 1.5px solid var(--glass-border-input);
+  border-radius: var(--admin-radius-sm);
+  box-shadow: inset 0 1px 2px rgba(17, 24, 39, 0.04);
+}
+
+.admin-shell .form-control::placeholder {
+  color: var(--admin-text-secondary);
+  opacity: 0.85;
+}
+
+.admin-shell .form-control:focus,
+.admin-shell .form-select:focus {
+  border-color: var(--admin-primary);
+  box-shadow: 0 0 0 3px rgba(47, 128, 237, 0.15);
+}
+
+.admin-modal-overlay {
+  background: rgba(20, 25, 40, 0.28);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.admin-shell .modal-content {
+  background: var(--glass-bg-strong);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-radius: var(--admin-radius-lg);
+  box-shadow: var(--admin-shadow-elevated);
+}
+
+.admin-shell .modern-modal-content,
+.admin-shell .cancel-confirmation-modal {
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+}
+
+.admin-shell .empty-state {
+  background: var(--glass-bg-soft);
+  border-radius: var(--admin-radius-md);
+}
+
+/* ---------- Shimmer/skeleton loading (replaces spinner-border) ---------- */
+
+.admin-skeleton {
+  display: inline-block;
+  background: linear-gradient(100deg,
+      rgba(255, 255, 255, 0.35) 30%,
+      rgba(255, 255, 255, 0.75) 50%,
+      rgba(255, 255, 255, 0.35) 70%);
+  background-size: 200% 100%;
+  animation: admin-skeleton-shimmer 1.4s ease-in-out infinite;
+}
+
+@keyframes admin-skeleton-shimmer {
+  0% {
+    background-position: 100% 0;
+  }
+
+  100% {
+    background-position: -100% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-skeleton {
+    animation: none;
+    background: rgba(230, 230, 230, 0.25);
+  }
+}
+
+.admin-skeleton-table {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 4px;
+}
+
+.admin-skeleton-row {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  padding: 14px 16px;
+  background: var(--glass-bg-soft);
+  border-radius: var(--admin-radius-md);
+}
+
+.admin-skeleton-row .admin-skeleton {
+  flex: 1 1 0;
+}
+
+.admin-skeleton-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 20px;
+}
+
+.admin-skeleton-card {
+  background: rgba(92, 92, 92, 0.402);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--admin-radius-lg);
+  padding: 16px;
+}

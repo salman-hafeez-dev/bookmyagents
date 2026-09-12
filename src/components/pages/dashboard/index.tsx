@@ -1,16 +1,12 @@
-import FooterFive from "../../../layouts/footers/FooterFive"
 import InnerHeader from "../../../layouts/headers/InnerHeader"
 import DashboardArea from "./DashboardArea"
 
 const Dashboard = () => {
    return (
-      <>
+      <div className="admin-fixed-viewport">
          <InnerHeader />
-         <main>
-            <DashboardArea />
-         </main>
-         <FooterFive />
-      </>
+         <DashboardArea />
+      </div>
    )
 }
 

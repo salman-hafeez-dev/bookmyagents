@@ -1,28 +1,22 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '../../../contexts/AuthContext';
 import { serviceService } from '../../../services/serviceService';
-import { type Service, type CreateServiceData, type ServiceFilters, type ServiceStats } from '../../../types/service';
+import { type Service, type CreateServiceData, type ServiceFilters } from '../../../types/service';
 import ServiceForm from '../../forms/ServiceForm';
 import ServiceList from '../../common/ServiceList';
 import AgentBlogManagement from '../admin/AgentBlogManagement';
 import InnerHeader from '../../../layouts/headers/InnerHeader';
-import FooterFive from '../../../layouts/footers/FooterFive';
+import AdminDashboardShell from '../../dashboard-admin/AdminDashboardShell';
+import { type AdminNavItem } from '../../dashboard-admin/AdminSidebar';
+import { useGetAgentServicesQuery, useGetServiceStatsQuery } from '../../../redux/api/dashboardApi';
 
 type ActiveView = 'list' | 'create' | 'edit' | 'blogs';
 
 const AgentDashboard: React.FC = () => {
   const { user } = useAuth();
   const [activeView, setActiveView] = useState<ActiveView>('list');
-  const [services, setServices] = useState<Service[]>([]);
   const [editingService, setEditingService] = useState<Service | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [stats, setStats] = useState<ServiceStats>({
-    totalServices: 0,
-    servicesByCategory: {},
-    averagePrice: 0,
-    totalRevenue: 0,
-  });
 
   // Filters
   const [filters, setFilters] = useState<ServiceFilters>({
@@ -32,48 +26,25 @@ const AgentDashboard: React.FC = () => {
     category: '',
   });
 
-  useEffect(() => {
-    if (activeView === 'list') {
-      fetchServices();
-      fetchStats();
-    }
-  }, [activeView, filters]);
+  const {
+    data: servicesResponse,
+    isFetching: isLoading,
+    refetch: refetchServices,
+  } = useGetAgentServicesQuery(filters, { skip: activeView !== 'list' || !user?._id });
+  const services = servicesResponse?.data || [];
 
-  console.log("user", user, "activeView", activeView);
-
-  const fetchServices = async () => {
-    if (!user?._id) return;
-
-    try {
-      setIsLoading(true);
-      const response = await serviceService.getAgentServices(filters);
-      console.log("response", response, "user.id", user._id, "filters", filters);
-      setServices(response.data);
-    } catch (error) {
-      console.error('Error fetching services:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const fetchStats = async () => {
-    if (!user?._id) return;
-
-    try {
-      const response = await serviceService.getServiceStats(user._id);
-      setStats(response);
-    } catch (error) {
-      console.error('Error fetching stats:', error);
-    }
-  };
+  const {
+    data: stats = { totalServices: 0, servicesByCategory: {}, averagePrice: 0, totalRevenue: 0 },
+    refetch: refetchStats,
+  } = useGetServiceStatsQuery(user?._id, { skip: activeView !== 'list' || !user?._id });
 
   const handleCreateService = async (serviceData: CreateServiceData) => {
     try {
       setIsSubmitting(true);
       await serviceService.createService(serviceData);
       setActiveView('list');
-      fetchServices();
-      fetchStats();
+      refetchServices();
+      refetchStats();
     } catch (error) {
       console.error('Error creating service:', error);
       throw error;
@@ -90,8 +61,8 @@ const AgentDashboard: React.FC = () => {
       await serviceService.updateService({ _id: editingService._id, ...serviceData });
       setActiveView('list');
       setEditingService(null);
-      fetchServices();
-      fetchStats();
+      refetchServices();
+      refetchStats();
     } catch (error) {
       console.error('Error updating service:', error);
       throw error;
@@ -108,8 +79,8 @@ const AgentDashboard: React.FC = () => {
   const handleDeleteService = async (serviceId: string) => {
     try {
       await serviceService.deleteService(serviceId);
-      fetchServices();
-      fetchStats();
+      refetchServices();
+      refetchStats();
     } catch (error) {
       console.error('Error deleting service:', error);
     }
@@ -135,77 +106,45 @@ const AgentDashboard: React.FC = () => {
     }));
   };
 
+  const navItems: AdminNavItem[] = [
+    {
+      key: 'list',
+      label: 'My Services',
+      icon: 'fas fa-list',
+      onClick: () => setActiveView('list'),
+      active: activeView === 'list' || activeView === 'edit',
+    },
+    {
+      key: 'blogs',
+      label: 'My Blogs',
+      icon: 'fas fa-blog',
+      onClick: () => setActiveView('blogs'),
+      active: activeView === 'blogs',
+    },
+    {
+      key: 'create',
+      label: 'Create Service',
+      icon: 'fas fa-plus',
+      onClick: () => setActiveView('create'),
+      active: activeView === 'create',
+    },
+  ];
+
   return (
-    <>
+    <div className="admin-fixed-viewport">
       <InnerHeader />
 
-      <div className="agent-dashboard pt-120 pb-120">
-        <div className="container">
-          <div className="row">
-            <div className="col-12">
-              {/* Dashboard Header */}
-              <div className="dashboard-header mb-40">
-                <div className="row align-items-center">
-                  <div className="col-lg-8 col-md-7 col-12">
-                    <h2 className="dashboard-title">Agent Dashboard</h2>
-                    <p className="dashboard-subtitle">
-                      Welcome back, {user?.fullName || 'Agent'}! {
-                        activeView === 'blogs'
-                          ? 'Manage your blog posts and share your expertise with the community.'
-                          : 'Manage your services and grow your business.'
-                      }
-                    </p>
-                  </div>
-                  <div className="col-lg-4 col-md-5 col-12 text-md-end text-start mt-md-0 mt-3">
-                    {/* <button 
-                    onClick={handleLogout}
-                    className="btn btn-outline-"
-                  >
-                    <i className="fas fa-sign-out-alt me-2"></i>
-                    Logout
-                  </button> */}
-                  </div>
-                </div>
-              </div>
-
-              {/* Navigation Tabs */}
-              <div className="dashboard-navigation mb-40">
-                <ul className="nav nav-pills justify-content-center flex-wrap">
-                  <li className="nav-item">
-                    <button
-                      className={`nav-link ${activeView === 'list' ? 'active' : ''}`}
-                      onClick={() => setActiveView('list')}
-                    >
-                      <i className="fas fa-list me-2"></i>
-                      <span className="d-none d-sm-inline">My Services</span>
-                      <span className="d-sm-none">Services</span>
-                    </button>
-                  </li>
-
-                  <li className="nav-item">
-                    <button
-                      className={`nav-link ${activeView === 'blogs' ? 'active' : ''}`}
-                      onClick={() => setActiveView('blogs')}
-                    >
-                      <i className="fas fa-blog me-2"></i>
-                      <span className="d-none d-sm-inline">My Blogs</span>
-                      <span className="d-sm-none">Blogs</span>
-                    </button>
-                  </li>
-
-                  <li className="nav-item">
-                    <button
-                      className={`nav-link ${activeView === 'create' ? 'active' : ''}`}
-                      onClick={() => setActiveView('create')}
-                    >
-                      <i className="fas fa-plus me-2"></i>
-                      <span className="d-none d-sm-inline">Create Service</span>
-                      <span className="d-sm-none">Create</span>
-                    </button>
-                  </li>
-                </ul>
-              </div>
-
+      <AdminDashboardShell
+        title="Agent Dashboard"
+        subtitle={
+          `Welcome back, ${user?.fullName || 'Agent'}! ` + (
+            activeView === 'blogs'
+              ? 'Manage your blog posts and share your expertise with the community.'
+              : 'Manage your services and grow your business.'
+          )
+        }
+        navItems={navItems}
+      >
               {/* Services List View */}
               {activeView === 'list' && (
                 <>
@@ -313,7 +252,7 @@ const AgentDashboard: React.FC = () => {
                         <div className="col-lg-2 col-md-3 col-6">
                           <button
                             className="btn btn-primary w-100"
-                            onClick={fetchServices}
+                            onClick={() => refetchServices()}
                           >
                             <i className="fas fa-search d-md-none me-1"></i>
                             <span className="d-none d-md-inline">Search</span>
@@ -406,13 +345,8 @@ const AgentDashboard: React.FC = () => {
               {activeView === 'blogs' && (
                 <AgentBlogManagement />
               )}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <FooterFive />
-    </>
+      </AdminDashboardShell>
+    </div>
   );
 };
 
