@@ -175,7 +175,7 @@ export const blogService = {
                     'Content-Type': 'multipart/form-data',
                 },
             });
-            return response.data.url;
+            return response.data.data?.url || response.data.url;
         } catch (error) {
             throw error;
         }

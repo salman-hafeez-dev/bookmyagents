@@ -43,16 +43,16 @@ const AdminDashboardShell: React.FC<AdminDashboardShellProps> = ({
             onClose={() => setSidebarOpen(false)}
           />
 
-          <div className="admin-main">
-            <AdminHeader
-              title={title}
-              subtitle={subtitle}
-              actions={headerActions}
-              onMenuClick={() => setSidebarOpen(true)}
-            />
+          {/* <div className="admin-main"> */}
+          <AdminHeader
+            title={title}
+            subtitle={subtitle}
+            actions={headerActions}
+            onMenuClick={() => setSidebarOpen(true)}
+          />
 
-            <div className="admin-content">{children}</div>
-          </div>
+          <div className="admin-content">{children}</div>
+          {/* </div> */}
         </div>
       </div>
     </div>

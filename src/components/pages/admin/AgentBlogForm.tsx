@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { blogService, type CreateBlogData } from '../../../services/blogService';
 import { type Blog } from '../../../types/blog';
+import { showToast, getErrorMessage } from '../../../utils/toast';
 
 interface AgentBlogFormProps {
     blog?: Blog;
@@ -24,6 +25,7 @@ const AgentBlogForm: React.FC<AgentBlogFormProps> = ({
     const [loading, setLoading] = useState(false);
     const [imagePreview, setImagePreview] = useState<string | null>(blog?.coverImage || null);
     const [uploadingImage, setUploadingImage] = useState(false);
+    const [uploadProgress, setUploadProgress] = useState(0);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -48,29 +50,48 @@ const AgentBlogForm: React.FC<AgentBlogFormProps> = ({
 
         // Validate file type
         if (!file.type.startsWith('image/')) {
-            alert('Please select an image file');
+            showToast.error('Please select an image file');
             return;
         }
 
         // Validate file size (5MB max)
         if (file.size > 5 * 1024 * 1024) {
-            alert('Image size should be less than 5MB');
+            showToast.error('Image size should be less than 5MB');
             return;
         }
 
         try {
             setUploadingImage(true);
+            setUploadProgress(0);
+
+            // Simulate progress (real progress would come from Cloudinary)
+            const progressInterval = setInterval(() => {
+                setUploadProgress(prev => {
+                    if (prev >= 90) {
+                        clearInterval(progressInterval);
+                        return 90;
+                    }
+                    return prev + Math.random() * 30;
+                });
+            }, 200);
+
             const imageUrl = await blogService.uploadBlogImage(file);
+
+            clearInterval(progressInterval);
+            setUploadProgress(100);
+
             setFormData(prev => ({
                 ...prev,
                 coverImage: imageUrl
             }));
             setImagePreview(imageUrl);
+            showToast.success('Image uploaded successfully!');
         } catch (error) {
             console.error('Error uploading image:', error);
-            alert('Failed to upload image. Please try again.');
+            showToast.error(getErrorMessage(error));
         } finally {
             setUploadingImage(false);
+            setTimeout(() => setUploadProgress(0), 500);
         }
     };
 
@@ -87,12 +108,12 @@ const AgentBlogForm: React.FC<AgentBlogFormProps> = ({
         e.preventDefault();
 
         if (!formData.title.trim()) {
-            alert('Please enter a title');
+            showToast.error('Please enter a title');
             return;
         }
 
         if (!formData.content.trim()) {
-            alert('Please enter content');
+            showToast.error('Please enter content');
             return;
         }
 
@@ -102,14 +123,16 @@ const AgentBlogForm: React.FC<AgentBlogFormProps> = ({
 
             if (isEdit && blog) {
                 savedBlog = await blogService.updatePublicBlog(blog._id, formData);
+                showToast.success('Blog updated successfully!');
             } else {
                 savedBlog = await blogService.createPublicBlog(formData);
+                showToast.success('Blog created successfully!');
             }
 
             onSave(savedBlog);
         } catch (error) {
             console.error('Error saving blog:', error);
-            alert('Failed to save blog. Please try again.');
+            showToast.error(getErrorMessage(error));
         } finally {
             setLoading(false);
         }
@@ -326,13 +349,39 @@ const AgentBlogForm: React.FC<AgentBlogFormProps> = ({
                                 <h6 className="card-title mb-0">Actions</h6>
                             </div>
                             <div className="card-body">
+                                {/* Upload Progress */}
+                                {uploadingImage && uploadProgress > 0 && (
+                                    <div className="mb-3">
+                                        <small className="text-muted d-block mb-2">Uploading image...</small>
+                                        <div className="progress" style={{ height: '4px' }}>
+                                            <div
+                                                className="progress-bar"
+                                                role="progressbar"
+                                                style={{ width: `${uploadProgress}%` }}
+                                                aria-valuenow={uploadProgress}
+                                                aria-valuemin={0}
+                                                aria-valuemax={100}
+                                            ></div>
+                                        </div>
+                                        <small className="text-muted d-block mt-1">{Math.round(uploadProgress)}%</small>
+                                    </div>
+                                )}
+
                                 <div className="d-grid gap-2">
                                     <button
                                         type="submit"
                                         className="btn btn-primary"
                                         disabled={loading || uploadingImage}
+                                        title={uploadingImage ? 'Uploading image...' : ''}
                                     >
-                                        {loading ? (
+                                        {uploadingImage ? (
+                                            <>
+                                                <span className="spinner-border spinner-border-sm me-2" role="status">
+                                                    <span className="visually-hidden">Uploading...</span>
+                                                </span>
+                                                Uploading...
+                                            </>
+                                        ) : loading ? (
                                             <>
                                                 <span className="spinner-border spinner-border-sm me-2" role="status">
                                                     <span className="visually-hidden">Loading...</span>

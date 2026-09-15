@@ -1,4 +1,5 @@
 import api from './api';
+import { type Category } from '../types/category';
 
 // Types for profile operations
 export interface ProfileData {
@@ -7,8 +8,18 @@ export interface ProfileData {
     fullName: string;
     phoneNumber: string;
     email: string;
+    avatar?: string; // Cloudinary URL
     isActive: boolean;
     expertise?: string[];
+    categories?: Category[]; // populated — agent's selected service categories
+    categoryLimit?: number; // effective limit from the agent's subscription (or the new-agent default)
+    subscription?: {
+        _id: string;
+        name: string;
+        price: number;
+        features: string[];
+        categoryLimit?: number;
+    };
     createdAt: string;
     updatedAt: string;
 }
@@ -17,6 +28,8 @@ export interface UpdateProfileData {
     fullName?: string;
     phoneNumber?: string;
     expertise?: string[];
+    categories?: string[]; // category ids — agents only
+    avatar?: string; // Cloudinary URL
 }
 
 export interface ProfileResponse {
@@ -42,11 +55,55 @@ export const profileService = {
         }
     },
 
-    // Update user profile
+    // Update user profile (JSON)
     updateProfile: async (profileData: UpdateProfileData): Promise<UpdateProfileResponse> => {
         try {
             const response = await api.put('/profile', profileData);
             return response.data;
+        } catch (error) {
+            throw error;
+        }
+    },
+
+    // Update user profile with FormData (for file uploads like avatar)
+    updateProfileWithFormData: async (profileData: UpdateProfileData, avatarFile?: File): Promise<ProfileResponse> => {
+        try {
+            const formData = new FormData();
+
+            if (profileData.fullName) formData.append('fullName', profileData.fullName);
+            if (profileData.phoneNumber) formData.append('phoneNumber', profileData.phoneNumber);
+            if (profileData.expertise) {
+                profileData.expertise.forEach(exp => formData.append('expertise', exp));
+            }
+            if (profileData.categories) {
+                profileData.categories.forEach(cat => formData.append('categories', cat));
+            }
+            if (avatarFile) {
+                formData.append('avatar', avatarFile);
+            }
+
+            const response = await api.put('/profile', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            });
+            return response.data;
+        } catch (error) {
+            throw error;
+        }
+    },
+
+    // Upload avatar
+    uploadAvatar: async (file: File): Promise<string> => {
+        try {
+            const formData = new FormData();
+            formData.append('avatar', file);
+            const response = await api.put('/profile', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            });
+            return response.data.data.avatar;
         } catch (error) {
             throw error;
         }

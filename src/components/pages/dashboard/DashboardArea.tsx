@@ -7,12 +7,14 @@ import EditSubscriptionModal from './EditSubscriptionModal';
 import UserSubscriptionModal from './UserSubscriptionModal';
 import BlogManagement from '../admin/BlogManagement';
 import AgentBlogManagement from '../admin/AgentBlogManagement';
+import CategoryManagement from '../admin/CategoryManagement';
+import SubscriptionRequestsPanel from '../admin/SubscriptionRequestsPanel';
 import AdminDashboardShell from '../../dashboard-admin/AdminDashboardShell';
 import { type AdminNavItem } from '../../dashboard-admin/AdminSidebar';
 import { TableSkeleton } from '../../dashboard-admin/Skeleton';
 import { useGetUsersQuery, useGetSubscriptionsQuery } from '../../../redux/api/dashboardApi';
 
-type ActiveModule = 'users' | 'subscriptions' | 'blogs';
+type ActiveModule = 'users' | 'subscriptions' | 'subscription-requests' | 'categories' | 'blogs';
 type UserRoleFilter = 'all' | 'admin' | 'agent' | 'user';
 
 const DashboardArea: React.FC = () => {
@@ -134,10 +136,26 @@ const DashboardArea: React.FC = () => {
     },
     {
       key: 'subscriptions',
-      label: 'Subscription Module',
+      label: 'Subscription Plans',
       icon: 'fas fa-credit-card',
       onClick: () => setActiveModule('subscriptions'),
       active: activeModule === 'subscriptions',
+      visible: user?.role === 'admin',
+    },
+    {
+      key: 'subscription-requests',
+      label: 'Subscription Requests',
+      icon: 'fas fa-file-signature',
+      onClick: () => setActiveModule('subscription-requests'),
+      active: activeModule === 'subscription-requests',
+      visible: user?.role === 'admin',
+    },
+    {
+      key: 'categories',
+      label: 'Category Module',
+      icon: 'fas fa-folder-open',
+      onClick: () => setActiveModule('categories'),
+      active: activeModule === 'categories',
       visible: user?.role === 'admin',
     },
     {
@@ -363,7 +381,12 @@ const DashboardArea: React.FC = () => {
         </>
       )}
 
-      {/* Subscription Module - Admin Only */}
+      {/* Subscription Requests - Admin Only, separate page */}
+      {activeModule === 'subscription-requests' && user?.role === 'admin' && (
+        <SubscriptionRequestsPanel />
+      )}
+
+      {/* Subscription Plans - Admin Only */}
       {activeModule === 'subscriptions' && user?.role === 'admin' && (
         <>
           {/* Subscription Stats */}
@@ -410,7 +433,7 @@ const DashboardArea: React.FC = () => {
             </div>
             <div className="card-body">
               {subscriptionLoading ? (
-                <TableSkeleton rows={4} columns={6} />
+                <TableSkeleton rows={4} columns={7} />
               ) : (
                 <div className="table-responsive">
                   <table className="table table-striped">
@@ -418,6 +441,7 @@ const DashboardArea: React.FC = () => {
                       <tr>
                         <th>Name</th>
                         <th>Price</th>
+                        <th>Category Limit</th>
                         <th>Features</th>
                         <th>Popular</th>
                         <th>Created</th>
@@ -429,6 +453,7 @@ const DashboardArea: React.FC = () => {
                         <tr key={subscription._id}>
                           <td>{subscription.name}</td>
                           <td>${subscription.price}</td>
+                          <td>{subscription.categoryLimit ?? 1}</td>
                           <td>{subscription.features.length} features</td>
                           <td>
                             <span className={`badge ${subscription.isPopular ? 'bg-warning' : 'bg-secondary'}`}>
@@ -456,6 +481,11 @@ const DashboardArea: React.FC = () => {
             </div>
           </div>
         </>
+      )}
+
+      {/* Category Module - Admin Only */}
+      {activeModule === 'categories' && user?.role === 'admin' && (
+        <CategoryManagement />
       )}
 
       {/* Blog Module */}

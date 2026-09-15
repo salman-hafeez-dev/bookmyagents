@@ -20,7 +20,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ items, isOpen, onClose }) =
   return (
     <>
       <aside className={`admin-sidebar${isOpen ? ' is-open' : ''}`}>
-        <div className="admin-sidebar-brand">
+        {/* <div className="admin-sidebar-brand">
           <img src="/assets/img/logo/logo-green.png" alt="Logo" />
           <button
             type="button"
@@ -30,7 +30,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ items, isOpen, onClose }) =
           >
             <i className="fas fa-times"></i>
           </button>
-        </div>
+        </div> */}
 
         <ul className="admin-nav-list">
           {items

@@ -1,17 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { profileService, type ProfileData, type UpdateProfileData } from '../../../services/profileService';
+import { categoryService } from '../../../services/categoryService';
+import { type Category } from '../../../types/category';
+import { showToast, getErrorMessage } from '../../../utils/toast';
 
 const ProfileArea: React.FC = () => {
     const [profile, setProfile] = useState<ProfileData | null>(null);
+    const [categories, setCategories] = useState<Category[]>([]);
     const [loading, setLoading] = useState(true);
     const [updating, setUpdating] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
+    const [avatarFile, setAvatarFile] = useState<File | null>(null);
+    const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
     const [formData, setFormData] = useState<UpdateProfileData>({
         fullName: '',
         phoneNumber: '',
-        expertise: []
+        expertise: [],
+        categories: []
     });
-    const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
     // Expertise options based on the schema
     const expertiseOptions = [
@@ -27,6 +33,14 @@ const ProfileArea: React.FC = () => {
         fetchProfile();
     }, []);
 
+    useEffect(() => {
+        if (profile?.role === 'agent' && categories.length === 0) {
+            categoryService.getCategories({ limit: 20 })
+                .then((res) => setCategories(res.data || []))
+                .catch((error) => console.error('Error fetching categories:', error));
+        }
+    }, [profile?.role, categories.length]);
+
     const fetchProfile = async () => {
         try {
             setLoading(true);
@@ -35,11 +49,12 @@ const ProfileArea: React.FC = () => {
             setFormData({
                 fullName: response.data.fullName,
                 phoneNumber: response.data.phoneNumber,
-                expertise: response.data.expertise || []
+                expertise: response.data.expertise || [],
+                categories: (response.data.categories || []).map((c) => c._id)
             });
         } catch (error) {
             console.error('Error fetching profile:', error);
-            setMessage({ type: 'error', text: 'Failed to fetch profile data' });
+            showToast.error(getErrorMessage(error));
         } finally {
             setLoading(false);
         }
@@ -51,6 +66,20 @@ const ProfileArea: React.FC = () => {
             ...prev,
             [name]: value
         }));
+    };
+
+    const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file && file.type.startsWith('image/')) {
+            setAvatarFile(file);
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setAvatarPreview(reader.result as string);
+            };
+            reader.readAsDataURL(file);
+        } else {
+            showToast.error('Please select a valid image file');
+        }
     };
 
     const handleExpertiseChange = (expertise: string) => {
@@ -74,19 +103,40 @@ const ProfileArea: React.FC = () => {
         });
     };
 
+    const handleCategoryToggle = (categoryId: string) => {
+        const current = formData.categories || [];
+        const isSelected = current.includes(categoryId);
+        const limit = profile?.categoryLimit ?? 1;
+
+        if (isSelected) {
+            setFormData(prev => ({ ...prev, categories: current.filter(id => id !== categoryId) }));
+            return;
+        }
+        if (current.length >= limit) {
+            showToast.warning(`Your subscription allows up to ${limit} categor${limit === 1 ? 'y' : 'ies'}. Upgrade your subscription to select more.`);
+            return;
+        }
+        setFormData(prev => ({ ...prev, categories: [...current, categoryId] }));
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
             setUpdating(true);
-            setMessage(null);
 
-            await profileService.updateProfile(formData);
-            setMessage({ type: 'success', text: 'Profile updated successfully!' });
+            if (avatarFile) {
+                await profileService.updateProfileWithFormData(formData, avatarFile);
+            } else {
+                await profileService.updateProfile(formData);
+            }
+            showToast.success('Profile updated successfully!');
             setIsEditing(false);
+            setAvatarFile(null);
+            setAvatarPreview(null);
             fetchProfile(); // Refresh profile data
         } catch (error) {
             console.error('Error updating profile:', error);
-            setMessage({ type: 'error', text: 'Failed to update profile' });
+            showToast.error(getErrorMessage(error));
         } finally {
             setUpdating(false);
         }
@@ -94,12 +144,14 @@ const ProfileArea: React.FC = () => {
 
     const handleCancel = () => {
         setIsEditing(false);
-        setMessage(null);
+        setAvatarFile(null);
+        setAvatarPreview(null);
         if (profile) {
             setFormData({
                 fullName: profile.fullName,
                 phoneNumber: profile.phoneNumber,
-                expertise: profile.expertise || []
+                expertise: profile.expertise || [],
+                categories: (profile.categories || []).map((c) => c._id)
             });
         }
     };
@@ -132,8 +184,16 @@ const ProfileArea: React.FC = () => {
                         {/* Profile Header */}
                         <div className="profile-header text-center mb-4">
                             <div className="profile-avatar">
-                                <div className="avatar-circle">
-                                    <i className="fas fa-user"></i>
+                                <div className="avatar-circle" style={{ position: 'relative' }}>
+                                    {avatarPreview || profile?.avatar ? (
+                                        <img
+                                            src={avatarPreview || profile?.avatar}
+                                            alt={profile?.fullName}
+                                            style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }}
+                                        />
+                                    ) : (
+                                        <i className="fas fa-user"></i>
+                                    )}
                                 </div>
                             </div>
                             <h3 className="profile-name">{profile?.fullName}</h3>
@@ -173,18 +233,6 @@ const ProfileArea: React.FC = () => {
                     {/* Right Column - Profile Information */}
                     <div className="col-lg-8 col-md-7">
 
-                        {/* Message Alert */}
-                        {message && (
-                            <div className={`alert ${message.type === 'success' ? 'alert-success' : 'alert-danger'} alert-dismissible fade show`} role="alert">
-                                {message.text}
-                                <button
-                                    type="button"
-                                    className="btn-close"
-                                    onClick={() => setMessage(null)}
-                                ></button>
-                            </div>
-                        )}
-
                         {/* Profile Card */}
                         <div className="profile-card">
                             <div className="card-header d-flex justify-content-between align-items-center">
@@ -211,6 +259,26 @@ const ProfileArea: React.FC = () => {
                                 {isEditing ? (
                                     <form onSubmit={handleSubmit}>
                                         <div className="row g-3">
+                                            <div className="col-12">
+                                                <label htmlFor="avatar" className="form-label">Profile Avatar</label>
+                                                <input
+                                                    type="file"
+                                                    className="form-control"
+                                                    id="avatar"
+                                                    accept="image/*"
+                                                    onChange={handleAvatarChange}
+                                                />
+                                                {avatarPreview && (
+                                                    <div className="mt-3">
+                                                        <small className="text-muted d-block mb-2">Preview:</small>
+                                                        <img
+                                                            src={avatarPreview}
+                                                            alt="Avatar preview"
+                                                            style={{ maxWidth: '150px', maxHeight: '150px', borderRadius: '8px', objectFit: 'cover' }}
+                                                        />
+                                                    </div>
+                                                )}
+                                            </div>
                                             <div className="col-md-6">
                                                 <label htmlFor="fullName" className="form-label">Full Name</label>
                                                 <input
@@ -273,6 +341,48 @@ const ProfileArea: React.FC = () => {
                                                     )}
                                                 </div>
                                             </div>
+                                            {profile?.role === 'agent' && (
+                                                <div className="col-12">
+                                                    <label className="form-label">
+                                                        Service Categories
+                                                        <small className="text-muted ms-2">
+                                                            ({formData.categories?.length || 0} / {profile?.categoryLimit ?? 1} selected)
+                                                        </small>
+                                                    </label>
+                                                    <div className="category-multiselect">
+                                                        <div className="row g-2">
+                                                            {categories.map((category) => {
+                                                                const limit = profile?.categoryLimit ?? 1;
+                                                                const isSelected = formData.categories?.includes(category._id) || false;
+                                                                const isDisabled = !isSelected && (formData.categories?.length || 0) >= limit;
+                                                                return (
+                                                                    <div key={category._id} className="col-md-4 col-sm-6">
+                                                                        <div className="form-check">
+                                                                            <input
+                                                                                className="form-check-input"
+                                                                                type="checkbox"
+                                                                                id={`category-${category._id}`}
+                                                                                checked={isSelected}
+                                                                                disabled={isDisabled}
+                                                                                onChange={() => handleCategoryToggle(category._id)}
+                                                                            />
+                                                                            <label
+                                                                                className="form-check-label"
+                                                                                htmlFor={`category-${category._id}`}
+                                                                            >
+                                                                                {category.name}
+                                                                            </label>
+                                                                        </div>
+                                                                    </div>
+                                                                );
+                                                            })}
+                                                        </div>
+                                                        <small className="text-muted d-block mt-2">
+                                                            Your subscription allows up to {profile?.categoryLimit ?? 1} categor{(profile?.categoryLimit ?? 1) === 1 ? 'y' : 'ies'}. Upgrade your subscription to select more.
+                                                        </small>
+                                                    </div>
+                                                </div>
+                                            )}
                                             <div className="col-12">
                                                 <div className="d-flex gap-2">
                                                     <button
@@ -376,6 +486,32 @@ const ProfileArea: React.FC = () => {
                                                     </div>
                                                 </div>
                                             </div>
+                                            {profile?.role === 'agent' && (
+                                                <div className="col-12">
+                                                    <div className="info-item">
+                                                        <label className="info-label">Service Categories</label>
+                                                        <div className="info-value">
+                                                            {profile.categories && profile.categories.length > 0 ? (
+                                                                <div className="d-flex flex-wrap gap-1">
+                                                                    {profile.categories.map((category) => (
+                                                                        <span key={category._id} className="badge bg-info me-1 mb-1">
+                                                                            {category.name}
+                                                                        </span>
+                                                                    ))}
+                                                                </div>
+                                                            ) : (
+                                                                <span className="text-muted">
+                                                                    <i className="fas fa-info-circle me-1"></i>
+                                                                    No categories selected
+                                                                </span>
+                                                            )}
+                                                            <small className="text-muted d-block mt-1">
+                                                                {profile.categories?.length || 0} / {profile.categoryLimit ?? 1} categories used
+                                                            </small>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                 )}

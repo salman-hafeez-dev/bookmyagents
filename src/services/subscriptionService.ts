@@ -9,6 +9,7 @@ export interface Subscription {
   description?: string;
   duration?: string;
   isPopular?: boolean;
+  categoryLimit?: number; // how many service Categories an agent on this plan may select
   createdAt?: string;
   updatedAt?: string;
 }

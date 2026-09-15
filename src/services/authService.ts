@@ -12,6 +12,7 @@ export interface RegisterData {
   password: string;
   role?: string;
   confirmPassword?: string;
+  categories?: string[]; // Category ids — agents only, capped server-side
 }
 
 export interface User {

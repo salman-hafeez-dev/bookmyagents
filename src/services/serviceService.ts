@@ -104,8 +104,8 @@ export const serviceService = {
   uploadServiceImages: async (files: File[]): Promise<string[]> => {
     try {
       const formData = new FormData();
-      files.forEach((file) => {
-        formData.append(`images`, file);
+      files.forEach((file, index) => {
+        formData.append(`file-${index}`, file);
       });
 
       const response = await api.post('/services/upload-images', formData, {
@@ -113,7 +113,7 @@ export const serviceService = {
           'Content-Type': 'multipart/form-data',
         },
       });
-      return response.data.urls;
+      return response.data.data?.urls || response.data.urls || [];
     } catch (error) {
       throw error;
     }

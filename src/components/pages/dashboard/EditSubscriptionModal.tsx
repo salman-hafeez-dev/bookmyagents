@@ -18,7 +18,8 @@ const EditSubscriptionModal: React.FC<EditSubscriptionModalProps> = ({
     price: subscription.price,
     description: subscription.description || '',
     isPopular: subscription.isPopular || false,
-    features: subscription.features.join('\n')
+    features: subscription.features.join('\n'),
+    categoryLimit: subscription.categoryLimit ?? 1
   });
   const [loading, setLoading] = useState(false);
 
@@ -32,7 +33,8 @@ const EditSubscriptionModal: React.FC<EditSubscriptionModalProps> = ({
         price: formData.price,
         description: formData.description,
         isPopular: formData.isPopular,
-        features: formData.features.split('\n').filter(f => f.trim() !== '')
+        features: formData.features.split('\n').filter(f => f.trim() !== ''),
+        categoryLimit: formData.categoryLimit
       };
 
       await onSave(subscriptionData);
@@ -155,6 +157,25 @@ const EditSubscriptionModal: React.FC<EditSubscriptionModalProps> = ({
                     onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) })}
                     min="0"
                     step="0.01"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="row mb-3">
+                <div className="col-md-6">
+                  <label htmlFor="categoryLimit" className="form-label">
+                    Category Limit
+                    <small className="text-muted ms-2">(how many service categories an agent on this plan may select)</small>
+                  </label>
+                  <input
+                    type="number"
+                    className="form-control"
+                    id="categoryLimit"
+                    value={formData.categoryLimit}
+                    onChange={(e) => setFormData({ ...formData, categoryLimit: parseInt(e.target.value, 10) || 0 })}
+                    min="0"
+                    step="1"
                     required
                   />
                 </div>

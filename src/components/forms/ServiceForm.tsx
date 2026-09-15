@@ -3,6 +3,9 @@ import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { type Service, type CreateServiceData } from '../../types/service';
+import { serviceService } from '../../services/serviceService';
+import { showToast, getErrorMessage } from '../../utils/toast';
+import { trackUploadProgress } from '../../utils/uploadHandler';
 
 interface ServiceFormProps {
   service?: Service;
@@ -70,6 +73,8 @@ const categories = [
 const ServiceForm: React.FC<ServiceFormProps> = ({ service, onSubmit, onCancel, isLoading = false }) => {
   const [description, setDescription] = useState(service?.description || '');
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const editorRef = useRef<HTMLDivElement>(null);
 
@@ -148,12 +153,33 @@ const ServiceForm: React.FC<ServiceFormProps> = ({ service, onSubmit, onCancel, 
 
   const onFormSubmit = async (data: any) => {
     try {
-      // Convert File objects to base64 or upload to server
+      const files = Array.from(data.pictures || []).filter(f => f instanceof File) as File[];
       const pictureUrls: string[] = [];
-      
-      // For now, we'll use placeholder URLs - in real implementation, upload to server
-      for (let i = 0; i < data.pictures.length; i++) {
-        pictureUrls.push(`placeholder-image-${i + 1}.jpg`);
+
+      // Upload pictures if provided with rollback support
+      if (files.length > 0) {
+        setIsUploading(true);
+
+        // Upload all pictures with progress tracking
+        const uploadedUrls = await trackUploadProgress.uploadMultiple(
+          files,
+          (file) => serviceService.uploadServiceImages([file]).then(urls => ({
+            url: urls[0],
+            publicId: `unknown-${Date.now()}`, // We don't have publicId from current API
+          })),
+          (current, total) => {
+            setUploadProgress((current / total) * 100);
+          }
+        );
+
+        pictureUrls.push(...uploadedUrls.urls);
+
+        if (pictureUrls.length === 0 && files.length > 0) {
+          throw new Error('Failed to upload images');
+        }
+
+        setIsUploading(false);
+        setUploadProgress(0);
       }
 
       const serviceData: CreateServiceData = {
@@ -167,8 +193,13 @@ const ServiceForm: React.FC<ServiceFormProps> = ({ service, onSubmit, onCancel, 
       };
 
       await onSubmit(serviceData);
+      showToast.success('Service created/updated successfully!');
     } catch (error) {
       console.error('Error submitting form:', error);
+      setIsUploading(false);
+      setUploadProgress(0);
+      showToast.error(getErrorMessage(error));
+      throw error;
     }
   };
 
@@ -507,6 +538,24 @@ const ServiceForm: React.FC<ServiceFormProps> = ({ service, onSubmit, onCancel, 
                   </div>
                 </div>
 
+                {/* Upload Progress */}
+                {isUploading && uploadProgress > 0 && (
+                  <div className="mb-3">
+                    <small className="text-muted d-block mb-2">Uploading images...</small>
+                    <div className="progress" style={{ height: '4px' }}>
+                      <div
+                        className="progress-bar bg-success"
+                        role="progressbar"
+                        style={{ width: `${uploadProgress}%` }}
+                        aria-valuenow={uploadProgress}
+                        aria-valuemin={0}
+                        aria-valuemax={100}
+                      ></div>
+                    </div>
+                    <small className="text-muted d-block mt-1">{Math.round(uploadProgress)}%</small>
+                  </div>
+                )}
+
                 {/* Form Actions */}
                 <div className="form-actions">
                   <div className="d-flex justify-content-end gap-3 flex-wrap">
@@ -514,16 +563,23 @@ const ServiceForm: React.FC<ServiceFormProps> = ({ service, onSubmit, onCancel, 
                       type="button"
                       className="btn btn-secondary flex-fill flex-md-fill-0"
                       onClick={onCancel}
-                      disabled={isLoading}
+                      disabled={isLoading || isUploading}
                     >
                       Cancel
                     </button>
                     <button
                       type="submit"
-                      className="btn btn-primary flex-fill flex-md-fill-0"
-                      disabled={isLoading}
+                      className="btn btn-primary flex-fill flex-md-fill-0 position-relative"
+                      disabled={isLoading || isUploading}
+                      title={isUploading ? 'Uploading images...' : ''}
                     >
-                      {isLoading ? (
+                      {isUploading ? (
+                        <>
+                          <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                          <span className="d-none d-sm-inline">Uploading...</span>
+                          <span className="d-sm-none">Upload...</span>
+                        </>
+                      ) : isLoading ? (
                         <>
                           <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
                           <span className="d-none d-sm-inline">{service ? 'Updating...' : 'Creating...'}</span>

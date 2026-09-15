@@ -1,7 +1,14 @@
 import { Link, useNavigate } from "react-router-dom"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useAuth } from "../../contexts/AuthContext"
 import { toast } from "react-toastify"
+import { categoryService } from "../../services/categoryService"
+import { type Category } from "../../types/category"
+
+// New agents (no subscription assigned yet) may pick this many categories
+// at signup — mirrors the backend's DEFAULT_AGENT_CATEGORY_LIMIT. More can
+// be added later from the profile page once a subscription is assigned.
+const NEW_AGENT_CATEGORY_LIMIT = 1
 
 const RegisterForm = () => {
    const [formData, setFormData] = useState({
@@ -11,17 +18,42 @@ const RegisterForm = () => {
       confirmPassword: '',
       role: 'user'
    })
+   const [categories, setCategories] = useState<Category[]>([])
+   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
    const [loading, setLoading] = useState(false)
    const [showPassword, setShowPassword] = useState(false)
    const [showConfirmPassword, setShowConfirmPassword] = useState(false)
    const { register } = useAuth()
    const navigate = useNavigate()
 
+   useEffect(() => {
+      if (formData.role === 'agent' && categories.length === 0) {
+         categoryService.getCategories({ limit: 20 })
+            .then((res) => setCategories(res.data || []))
+            .catch((error) => console.error('Error fetching categories:', error))
+      }
+   }, [formData.role, categories.length])
+
    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
       setFormData({
          ...formData,
          [e.target.name]: e.target.value
       })
+      if (e.target.name === 'role' && e.target.value !== 'agent') {
+         setSelectedCategories([])
+      }
+   }
+
+   const handleCategoryToggle = (categoryId: string) => {
+      if (selectedCategories.includes(categoryId)) {
+         setSelectedCategories(selectedCategories.filter((id) => id !== categoryId))
+         return
+      }
+      if (selectedCategories.length >= NEW_AGENT_CATEGORY_LIMIT) {
+         toast.info(`New agents can select up to ${NEW_AGENT_CATEGORY_LIMIT} categor${NEW_AGENT_CATEGORY_LIMIT === 1 ? 'y' : 'ies'}. You can add more later once a subscription is assigned.`)
+         return
+      }
+      setSelectedCategories([...selectedCategories, categoryId])
    }
 
    const togglePasswordVisibility = () => {
@@ -73,7 +105,8 @@ const RegisterForm = () => {
             fullName: formData.name.trim(),
             email: formData.email.trim(),
             password: formData.password,
-            role: formData.role
+            role: formData.role,
+            categories: formData.role === 'agent' ? selectedCategories : undefined
          })
          toast.success('Registration successful! Welcome to TourEx!')
          navigate('/')
@@ -126,11 +159,44 @@ const RegisterForm = () => {
                   <option value="agent">Agent</option>
                </select>
             </div>
+            {formData.role === 'agent' && (
+               <div className="col-lg-12 mb-25">
+                  <label className="mb-2 d-block">
+                     Service Category
+                     <small className="text-muted ms-2">
+                        (up to {NEW_AGENT_CATEGORY_LIMIT} for new agents — add more later once a subscription is assigned)
+                     </small>
+                  </label>
+                  <div className="row g-2">
+                     {categories.map((category) => (
+                        <div key={category._id} className="col-md-6">
+                           <div className="form-check">
+                              <input
+                                 className="form-check-input"
+                                 type="checkbox"
+                                 id={`register-category-${category._id}`}
+                                 checked={selectedCategories.includes(category._id)}
+                                 onChange={() => handleCategoryToggle(category._id)}
+                              />
+                              <label className="form-check-label" htmlFor={`register-category-${category._id}`}>
+                                 {category.name}
+                              </label>
+                           </div>
+                        </div>
+                     ))}
+                     {categories.length === 0 && (
+                        <div className="col-12">
+                           <small className="text-muted">Loading categories...</small>
+                        </div>
+                     )}
+                  </div>
+               </div>
+            )}
             <div className="col-lg-12 mb-25">
                <div className="password-input-wrapper" style={{ position: 'relative' }}>
-                  <input 
-                     className="input" 
-                     type={showPassword ? "text" : "password"} 
+                  <input
+                     className="input"
+                     type={showPassword ? "text" : "password"}
                      name="password"
                      placeholder="Password" 
                      value={formData.password}

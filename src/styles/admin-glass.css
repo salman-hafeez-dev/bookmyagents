@@ -138,7 +138,7 @@
      never scroll. This flat, slightly-higher-opacity tint sits directly
      on the already-blurred/gradient .admin-shell-bg behind it, so it
      still reads as glass without paying for blur on every frame. */
-  background: rgba(255, 255, 255, 0.62);
+  /* background: rgba(255, 255, 255, 0.62); */
   border: 1px solid var(--glass-border);
   border-radius: var(--admin-radius-xl);
   box-shadow: var(--admin-shadow-glass);
@@ -339,7 +339,7 @@
   justify-content: space-between;
   gap: 16px;
   flex-wrap: wrap;
-  background: rgba(255, 255, 255, 0.45);
+  /* background: rgba(255, 255, 255, 0.45); */
   border-bottom: 1px solid rgba(255, 255, 255, 0.45);
   padding: 20px 28px;
   /* Moved here from .admin-shell-frame: the header never scrolls (it's
