@@ -2,6 +2,7 @@ import { Link, useNavigate } from "react-router-dom"
 import { useState } from "react"
 import { useAuth } from "../../contexts/AuthContext"
 import { toast } from "react-toastify"
+import { landingRouteForRole } from "../../utils/landingRoute"
 
 const LoginForm = () => {
    const [formData, setFormData] = useState({
@@ -24,9 +25,9 @@ const LoginForm = () => {
       setLoading(true)
 
       try {
-         await login(formData)
+         const loggedInUser = await login(formData)
          toast.success('Login successful!')
-         navigate('/')
+         navigate(landingRouteForRole(loggedInUser?.role))
       } catch (error: any) {
          toast.error(error.response?.data?.message || 'Login failed. Please try again.')
       } finally {

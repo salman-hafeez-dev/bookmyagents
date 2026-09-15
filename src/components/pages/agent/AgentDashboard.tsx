@@ -6,12 +6,13 @@ import ServiceForm from '../../forms/ServiceForm';
 import ServiceList from '../../common/ServiceList';
 import AgentBlogManagement from '../admin/AgentBlogManagement';
 import ActiveSubscriptionPanel from './ActiveSubscriptionPanel';
+import AgentProfileSetup from './profile/AgentProfileSetup';
 import InnerHeader from '../../../layouts/headers/InnerHeader';
 import AdminDashboardShell from '../../dashboard-admin/AdminDashboardShell';
 import { type AdminNavItem } from '../../dashboard-admin/AdminSidebar';
 import { useGetAgentServicesQuery, useGetServiceStatsQuery } from '../../../redux/api/dashboardApi';
 
-type ActiveView = 'list' | 'create' | 'edit' | 'blogs' | 'subscription';
+type ActiveView = 'list' | 'create' | 'edit' | 'blogs' | 'subscription' | 'profile';
 
 const AgentDashboard: React.FC = () => {
   const { user } = useAuth();
@@ -112,6 +113,13 @@ const AgentDashboard: React.FC = () => {
 
   const navItems: AdminNavItem[] = [
     {
+      key: 'profile',
+      label: 'Profile',
+      icon: 'fas fa-id-badge',
+      onClick: () => setActiveView('profile'),
+      active: activeView === 'profile',
+    },
+    {
       key: 'list',
       label: 'My Services',
       icon: 'fas fa-list',
@@ -150,6 +158,9 @@ const AgentDashboard: React.FC = () => {
         subtitle={""}
         navItems={navItems}
       >
+        {/* Agent Profile — company details, documents and approval status */}
+        {activeView === 'profile' && <AgentProfileSetup />}
+
         {/* Services List View */}
         {activeView === 'list' && (
           <>

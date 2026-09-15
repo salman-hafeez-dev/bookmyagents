@@ -8,13 +8,14 @@ import UserSubscriptionModal from './UserSubscriptionModal';
 import BlogManagement from '../admin/BlogManagement';
 import AgentBlogManagement from '../admin/AgentBlogManagement';
 import CategoryManagement from '../admin/CategoryManagement';
+import AgentApprovalManagement from '../admin/AgentApprovalManagement';
 import SubscriptionRequestsPanel from '../admin/SubscriptionRequestsPanel';
 import AdminDashboardShell from '../../dashboard-admin/AdminDashboardShell';
 import { type AdminNavItem } from '../../dashboard-admin/AdminSidebar';
 import { TableSkeleton } from '../../dashboard-admin/Skeleton';
 import { useGetUsersQuery, useGetSubscriptionsQuery } from '../../../redux/api/dashboardApi';
 
-type ActiveModule = 'users' | 'subscriptions' | 'subscription-requests' | 'categories' | 'blogs';
+type ActiveModule = 'users' | 'subscriptions' | 'subscription-requests' | 'agents' | 'categories' | 'blogs';
 type UserRoleFilter = 'all' | 'admin' | 'agent' | 'user';
 
 const DashboardArea: React.FC = () => {
@@ -148,6 +149,14 @@ const DashboardArea: React.FC = () => {
       icon: 'fas fa-file-signature',
       onClick: () => setActiveModule('subscription-requests'),
       active: activeModule === 'subscription-requests',
+      visible: user?.role === 'admin',
+    },
+    {
+      key: 'agents',
+      label: 'Agent Approvals',
+      icon: 'fas fa-user-check',
+      onClick: () => setActiveModule('agents'),
+      active: activeModule === 'agents',
       visible: user?.role === 'admin',
     },
     {
@@ -484,6 +493,10 @@ const DashboardArea: React.FC = () => {
       )}
 
       {/* Category Module - Admin Only */}
+      {activeModule === 'agents' && user?.role === 'admin' && (
+        <AgentApprovalManagement />
+      )}
+
       {activeModule === 'categories' && user?.role === 'admin' && (
         <CategoryManagement />
       )}
