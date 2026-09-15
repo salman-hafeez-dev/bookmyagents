@@ -174,13 +174,6 @@ const DashboardArea: React.FC = () => {
       onClick: () => setActiveModule('blogs'),
       active: activeModule === 'blogs',
     },
-    {
-      key: 'profile',
-      label: 'Profile',
-      icon: 'fas fa-user',
-      onClick: () => { window.location.href = '/profile'; },
-      active: false,
-    },
   ];
 
   return (

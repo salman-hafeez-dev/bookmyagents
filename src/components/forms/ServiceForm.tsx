@@ -72,7 +72,11 @@ const categories = [
 
 const ServiceForm: React.FC<ServiceFormProps> = ({ service, onSubmit, onCancel, isLoading = false }) => {
   const [description, setDescription] = useState(service?.description || '');
-  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+  // Images already saved on the service (Cloudinary URLs). Tracked separately
+  // from newly picked files so an edit keeps what's already there.
+  const [existingPictures, setExistingPictures] = useState<string[]>(service?.pictures || []);
+  // Object URLs for files picked in this session, rebuilt whenever they change.
+  const [newPreviews, setNewPreviews] = useState<string[]>([]);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -111,31 +115,60 @@ const ServiceForm: React.FC<ServiceFormProps> = ({ service, onSubmit, onCancel, 
   });
 
   const watchedPictures = watch('pictures');
+  const totalImageCount = existingPictures.length + newPreviews.length;
 
   useEffect(() => {
-    if (watchedPictures && watchedPictures.length && watchedPictures.length > 0) {
-      const previews = Array.from(watchedPictures).map(file => {
-        if (file instanceof File) {
-          return URL.createObjectURL(file);
-        }
-        return '';
-      }).filter(url => url !== '');
-      setImagePreviews(previews);
-    }
+    const files = Array.from(watchedPictures || []).filter((f): f is File => f instanceof File);
+    const urls = files.map((file) => URL.createObjectURL(file));
+    setNewPreviews(urls);
+    // Object URLs leak until revoked, so release the previous batch whenever
+    // the selection changes and on unmount.
+    return () => urls.forEach((url) => URL.revokeObjectURL(url));
   }, [watchedPictures]);
 
+  // Re-seed when the form is handed a different service to edit. Keyed on the
+  // joined URLs rather than the array identity, so a parent refetch handing
+  // back an equal-but-new array doesn't silently undo the user's removals.
+  const servicePicturesKey = (service?.pictures || []).join('|');
+  useEffect(() => {
+    setExistingPictures(service?.pictures || []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [service?._id, servicePicturesKey]);
+
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files;
-    if (files) {
-      const fileArray = Array.from(files);
-      setValue('pictures', fileArray);
+    const picked = Array.from(event.target.files || []);
+    if (picked.length === 0) return;
+
+    const current = Array.from(watchedPictures || []).filter((f): f is File => f instanceof File);
+    // Append rather than replace, so picking a second time adds to the set.
+    // Skip files already staged, since re-opening the picker is easy to repeat.
+    const isDuplicate = (file: File) => current.some(
+      (existing) => existing.name === file.name
+        && existing.size === file.size
+        && existing.lastModified === file.lastModified
+    );
+    const added = picked.filter((file) => !isDuplicate(file));
+
+    if (added.length < picked.length) {
+      showToast.info('Some images were already selected and have been skipped');
     }
+    if (added.length > 0) {
+      setValue('pictures', [...current, ...added], { shouldValidate: true });
+    }
+
+    // Clear the input so the same file can be chosen again after removal.
+    event.target.value = '';
   };
 
-  const removeImage = (index: number) => {
-    const currentFiles = watchedPictures && watchedPictures.length ? watchedPictures : [];
-    const newFiles = currentFiles.filter((_, i) => i !== index);
-    setValue('pictures', newFiles);
+  // Drops an image that is already saved on the service.
+  const removeExistingImage = (index: number) => {
+    setExistingPictures((previous) => previous.filter((_, i) => i !== index));
+  };
+
+  // Drops a file picked in this session, before it is ever uploaded.
+  const removeNewImage = (index: number) => {
+    const current = Array.from(watchedPictures || []).filter((f): f is File => f instanceof File);
+    setValue('pictures', current.filter((_, i) => i !== index), { shouldValidate: true });
   };
 
   const formatText = (command: string, value?: string) => {
@@ -185,7 +218,9 @@ const ServiceForm: React.FC<ServiceFormProps> = ({ service, onSubmit, onCancel, 
       const serviceData: CreateServiceData = {
         title: data.title,
         description: data.description,
-        pictures: pictureUrls,
+        // Previously saved images the user kept, plus anything uploaded now.
+        // Sending only the new uploads would wipe the existing gallery on edit.
+        pictures: [...existingPictures, ...pictureUrls],
         contactDetails: data.contactDetails,
         category: data.category as any,
         price: data.price,
@@ -339,7 +374,9 @@ const ServiceForm: React.FC<ServiceFormProps> = ({ service, onSubmit, onCancel, 
                   <h5 className="section-title">Service Images</h5>
                   
                   <div className="form-group mb-3">
-                    <label htmlFor="images" className="form-label">Upload Images *</label>
+                    <label htmlFor="images" className="form-label">
+                      Upload Images {service ? '' : '*'}
+                    </label>
                     <input
                       ref={fileInputRef}
                       type="file"
@@ -353,26 +390,64 @@ const ServiceForm: React.FC<ServiceFormProps> = ({ service, onSubmit, onCancel, 
                       <div className="invalid-feedback">{errors.pictures.message}</div>
                     )}
                     <small className="form-text text-muted">
-                      Upload multiple images to showcase your service
+                      Choose one or more images. Picking again adds to the set rather than
+                      replacing it, so you can build the gallery up over several goes.
                     </small>
                   </div>
 
-                  {imagePreviews.length > 0 && (
+                  {totalImageCount === 0 ? (
+                    <div className="alert alert-light border text-center mb-0">
+                      <i className="fas fa-images fa-2x text-muted mb-2 d-block" aria-hidden="true"></i>
+                      <span className="text-muted">No images on this service yet.</span>
+                    </div>
+                  ) : (
                     <div className="image-previews">
+                      <small className="text-muted d-block mb-2">
+                        {totalImageCount} image{totalImageCount === 1 ? '' : 's'}
+                        {newPreviews.length > 0 && <> · {newPreviews.length} pending upload</>}
+                      </small>
                       <div className="row">
-                        {imagePreviews.map((preview, index) => (
-                          <div key={index} className="col-md-3 mb-3">
+                        {/* Already saved on the service */}
+                        {existingPictures.map((url, index) => (
+                          <div key={`existing-${url}`} className="col-md-3 mb-3">
                             <div className="image-preview-card">
                               <img
+                                src={url}
+                                alt={`Service image ${index + 1}`}
+                                className="img-fluid rounded"
+                                style={{ height: '150px', objectFit: 'cover', width: '100%' }}
+                              />
+                              <button
+                                type="button"
+                                className="btn btn-sm btn-outline-danger mt-2 w-100"
+                                onClick={() => removeExistingImage(index)}
+                              >
+                                Remove
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+
+                        {/* Picked in this session, not uploaded yet */}
+                        {newPreviews.map((preview, index) => (
+                          <div key={`new-${preview}`} className="col-md-3 mb-3">
+                            <div className="image-preview-card position-relative">
+                              <span
+                                className="badge bg-primary position-absolute"
+                                style={{ top: 8, left: 8 }}
+                              >
+                                New
+                              </span>
+                              <img
                                 src={preview}
-                                alt={`Preview ${index + 1}`}
+                                alt={`New image ${index + 1}`}
                                 className="img-fluid rounded"
                                 style={{ height: '150px', objectFit: 'cover', width: '100%' }}
                               />
                               <button
                                 type="button"
                                 className="btn btn-sm btn-danger mt-2 w-100"
-                                onClick={() => removeImage(index)}
+                                onClick={() => removeNewImage(index)}
                               >
                                 Remove
                               </button>

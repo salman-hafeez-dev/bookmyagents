@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { profileService, type ProfileData, type UpdateProfileData } from '../../../services/profileService';
 import { categoryService } from '../../../services/categoryService';
 import { type Category } from '../../../types/category';
@@ -12,6 +12,7 @@ const ProfileArea: React.FC = () => {
     const [isEditing, setIsEditing] = useState(false);
     const [avatarFile, setAvatarFile] = useState<File | null>(null);
     const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+    const avatarInputRef = useRef<HTMLInputElement>(null);
     const [formData, setFormData] = useState<UpdateProfileData>({
         fullName: '',
         phoneNumber: '',
@@ -66,6 +67,12 @@ const ProfileArea: React.FC = () => {
             ...prev,
             [name]: value
         }));
+    };
+
+    const clearAvatarSelection = () => {
+        setAvatarFile(null);
+        setAvatarPreview(null);
+        if (avatarInputRef.current) avatarInputRef.current.value = '';
     };
 
     const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -261,23 +268,61 @@ const ProfileArea: React.FC = () => {
                                         <div className="row g-3">
                                             <div className="col-12">
                                                 <label htmlFor="avatar" className="form-label">Profile Avatar</label>
-                                                <input
-                                                    type="file"
-                                                    className="form-control"
-                                                    id="avatar"
-                                                    accept="image/*"
-                                                    onChange={handleAvatarChange}
-                                                />
-                                                {avatarPreview && (
-                                                    <div className="mt-3">
-                                                        <small className="text-muted d-block mb-2">Preview:</small>
-                                                        <img
-                                                            src={avatarPreview}
-                                                            alt="Avatar preview"
-                                                            style={{ maxWidth: '150px', maxHeight: '150px', borderRadius: '8px', objectFit: 'cover' }}
-                                                        />
+                                                {/* The photo sits next to the picker so the current one is
+                                                    always visible, not just after choosing a new file. */}
+                                                <div className="d-flex align-items-center gap-3 flex-wrap">
+                                                    <div
+                                                        style={{
+                                                            width: 90,
+                                                            height: 90,
+                                                            borderRadius: '50%',
+                                                            overflow: 'hidden',
+                                                            flexShrink: 0,
+                                                            background: '#f1f3f5',
+                                                            border: '1px solid #dee2e6',
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            justifyContent: 'center',
+                                                        }}
+                                                    >
+                                                        {avatarPreview || profile?.avatar ? (
+                                                            <img
+                                                                src={avatarPreview || profile?.avatar}
+                                                                alt={avatarPreview ? 'New avatar preview' : 'Current avatar'}
+                                                                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                                            />
+                                                        ) : (
+                                                            <i className="fas fa-user fa-2x text-muted" aria-hidden="true"></i>
+                                                        )}
                                                     </div>
-                                                )}
+
+                                                    <div className="flex-grow-1" style={{ minWidth: 220 }}>
+                                                        <input
+                                                            ref={avatarInputRef}
+                                                            type="file"
+                                                            className="form-control"
+                                                            id="avatar"
+                                                            accept="image/*"
+                                                            onChange={handleAvatarChange}
+                                                        />
+                                                        <small className="text-muted d-block mt-1">
+                                                            {avatarPreview
+                                                                ? 'New photo selected — save to apply it.'
+                                                                : profile?.avatar
+                                                                    ? 'This is your current photo. Choose a file to replace it.'
+                                                                    : 'No photo yet. JPG or PNG works best.'}
+                                                        </small>
+                                                        {avatarPreview && (
+                                                            <button
+                                                                type="button"
+                                                                className="btn btn-sm btn-link px-0 mt-1"
+                                                                onClick={clearAvatarSelection}
+                                                            >
+                                                                Keep my current photo
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                </div>
                                             </div>
                                             <div className="col-md-6">
                                                 <label htmlFor="fullName" className="form-label">Full Name</label>
