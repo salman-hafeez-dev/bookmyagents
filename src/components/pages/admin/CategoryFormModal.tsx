@@ -74,6 +74,8 @@ const CategoryFormModal: React.FC<CategoryFormModalProps> = ({ category, onClose
             width: '100%',
             maxHeight: '90vh',
             position: 'relative',
+            background: "#FFF",
+            borderRadius: "12px"
           }}
         >
           <button

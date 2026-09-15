@@ -4,6 +4,7 @@ import { useAuth } from "../../contexts/AuthContext"
 import { toast } from "react-toastify"
 import { categoryService } from "../../services/categoryService"
 import { type Category } from "../../types/category"
+import { landingRouteForRole } from "../../utils/landingRoute"
 
 // New agents (no subscription assigned yet) may pick this many categories
 // at signup — mirrors the backend's DEFAULT_AGENT_CATEGORY_LIMIT. More can
@@ -101,7 +102,7 @@ const RegisterForm = () => {
       setLoading(true)
 
       try {
-         await register({
+         const registeredUser = await register({
             fullName: formData.name.trim(),
             email: formData.email.trim(),
             password: formData.password,
@@ -109,7 +110,7 @@ const RegisterForm = () => {
             categories: formData.role === 'agent' ? selectedCategories : undefined
          })
          toast.success('Registration successful! Welcome to TourEx!')
-         navigate('/')
+         navigate(landingRouteForRole(registeredUser?.role))
       } catch (error: any) {
          console.error('Registration error:', error)
          const errorMessage = error.response?.data?.message || 
