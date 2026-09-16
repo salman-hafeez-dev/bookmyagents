@@ -5,7 +5,7 @@ import { showToast } from '../../../utils/toast';
 import { type AdminAgentDetail } from '../../../types/agentProfile';
 import { formatFileSize } from '../../../utils/formatFileSize';
 import DocumentViewerModal from '../../common/DocumentViewerModal';
-import ModalPortal from '../../common/ModalPortal';
+import Modal from '../../common/Modal';
 
 interface AgentReviewDetailProps {
   agentId: string;
@@ -127,11 +127,10 @@ const AgentReviewDetail: React.FC<AgentReviewDetailProps> = ({ agentId, onBack, 
         </div>
         <div className="card-body">
           <div className="d-flex flex-wrap gap-3 align-items-center mb-20">
-            <span className={`badge ${
-              agent.status === 'approved' ? 'bg-success'
-                : agent.status === 'pending' ? 'bg-warning text-dark'
+            <span className={`badge ${agent.status === 'approved' ? 'bg-success'
+              : agent.status === 'pending' ? 'bg-warning text-dark'
                 : agent.status === 'rejected' ? 'bg-danger' : 'bg-secondary'
-            }`}>{agent.status}</span>
+              }`}>{agent.status}</span>
             <span className="text-muted">{agent.profileCompletionPercentage}% complete</span>
             {agent.submittedForReviewAt && (
               <span className="text-muted">
@@ -204,8 +203,8 @@ const AgentReviewDetail: React.FC<AgentReviewDetailProps> = ({ agentId, onBack, 
           <p className="mb-30">
             {agent.categories.length > 0
               ? agent.categories.map((category) => (
-                  <span key={category._id} className="badge bg-primary me-2">{category.name}</span>
-                ))
+                <span key={category._id} className="badge bg-primary me-2">{category.name}</span>
+              ))
               : <span className="text-muted fst-italic">None selected</span>}
           </p>
 
@@ -265,95 +264,73 @@ const AgentReviewDetail: React.FC<AgentReviewDetailProps> = ({ agentId, onBack, 
       </div>
 
       {mode !== 'none' && (
-        <ModalPortal>
-          <div
-            className="modal-overlay admin-modal-overlay"
-            role="dialog"
-            aria-modal="true"
-            onClick={(event) => { if (event.target === event.currentTarget && !acting) closeModal(); }}
-            style={{
-              position: 'fixed',
-              inset: 0,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              zIndex: 9999,
-              padding: '20px',
-              background: 'rgba(0, 0, 0, 0.5)',
-            }}
-          >
-            <div className="modal-dialog modal-dialog-centered m-0" style={{ width: '100%', maxWidth: 500 }}>
-              <div className="modal-content">
-                <div className="modal-header">
-                  <h5 className="modal-title">
-                    {mode === 'approve' ? 'Approve this agent?' : 'Request changes'}
-                  </h5>
-                  <button type="button" className="btn-close" aria-label="Close" onClick={closeModal} />
-                </div>
-                <div className="modal-body">
-                  {mode === 'approve' ? (
-                    <p>
-                      <strong>{basicInfo.companyName}</strong> becomes publicly visible straight away, and the
-                      documents attached to this profile are marked approved.
-                    </p>
-                  ) : (
-                    <p>The agent sees your reason, can edit their profile, and can submit again.</p>
-                  )}
+        <Modal
+          onClose={closeModal}
+          title={mode === 'approve' ? 'Approve this agent?' : 'Request changes'}
+          size="md"
+          busy={acting}
+          footer={(
+            <>
+              <button type="button" className="btn btn-outline-secondary" onClick={closeModal} disabled={acting}>
+                Cancel
+              </button>
+              <button
+                type="button"
+                className={`btn ${mode === 'approve' ? 'btn-success' : 'btn-danger'}`}
+                onClick={mode === 'approve' ? handleApprove : handleReject}
+                disabled={acting || (mode === 'reject' && !rejectionReason.trim())}
+              >
+                {acting ? 'Saving…' : mode === 'approve' ? 'Approve agent' : 'Send back to agent'}
+              </button>
+            </>
+          )}
+        >
+          {mode === 'approve' ? (
+            <p>
+              <strong>{basicInfo.companyName}</strong> becomes publicly visible straight away, and the
+              documents attached to this profile are marked approved.
+            </p>
+          ) : (
+            <p>The agent sees your reason, can edit their profile, and can submit again.</p>
+          )}
 
-                  {mode === 'reject' && (
-                    <>
-                      <div className="mb-20">
-                        <label htmlFor="rejection-reason" className="form-label fw-semibold">
-                          Reason<span className="text-danger ms-1">*</span>
-                        </label>
-                        <input
-                          id="rejection-reason" type="text" className="form-control"
-                          value={rejectionReason}
-                          onChange={(event) => setRejectionReason(event.target.value)}
-                          placeholder="e.g. Business licence is unreadable"
-                        />
-                      </div>
-                      <div className="mb-20">
-                        <label htmlFor="rejection-details" className="form-label fw-semibold">Details</label>
-                        <textarea
-                          id="rejection-details" className="form-control" rows={3}
-                          value={rejectionReasonDetails}
-                          onChange={(event) => setRejectionReasonDetails(event.target.value)}
-                          placeholder="Explain exactly what the agent needs to change."
-                        />
-                      </div>
-                    </>
-                  )}
-
-                  <div className="mb-0">
-                    <label htmlFor="admin-notes" className="form-label fw-semibold">
-                      Note to the agent <span className="text-muted fw-normal">(optional)</span>
-                    </label>
-                    <textarea
-                      id="admin-notes" className="form-control" rows={3}
-                      value={adminNotes}
-                      onChange={(event) => setAdminNotes(event.target.value)}
-                      placeholder="Only this agent sees this — it is never shown publicly."
-                    />
-                  </div>
-                </div>
-                <div className="modal-footer">
-                  <button type="button" className="btn btn-outline-secondary" onClick={closeModal} disabled={acting}>
-                    Cancel
-                  </button>
-                  <button
-                    type="button"
-                    className={`btn ${mode === 'approve' ? 'btn-success' : 'btn-danger'}`}
-                    onClick={mode === 'approve' ? handleApprove : handleReject}
-                    disabled={acting || (mode === 'reject' && !rejectionReason.trim())}
-                  >
-                    {acting ? 'Saving…' : mode === 'approve' ? 'Approve agent' : 'Send back to agent'}
-                  </button>
-                </div>
+          {mode === 'reject' && (
+            <>
+              <div className="mb-20">
+                <label htmlFor="rejection-reason" className="form-label fw-semibold">
+                  Reason<span className="text-danger ms-1">*</span>
+                </label>
+                <input
+                  id="rejection-reason" type="text" className="form-control"
+                  value={rejectionReason}
+                  onChange={(event) => setRejectionReason(event.target.value)}
+                  placeholder="e.g. Business licence is unreadable"
+                />
               </div>
-            </div>
+              <div className="mb-20">
+                <label htmlFor="rejection-details" className="form-label fw-semibold">Details</label>
+                <textarea
+                  id="rejection-details" className="form-control" rows={3}
+                  value={rejectionReasonDetails}
+                  onChange={(event) => setRejectionReasonDetails(event.target.value)}
+                  placeholder="Explain exactly what the agent needs to change."
+                />
+              </div>
+            </>
+          )}
+
+          <div className="mb-0">
+            <label htmlFor="admin-notes" className="form-label fw-semibold">
+              Note to the agent <span className="text-muted fw-normal">(optional)</span>
+            </label>
+            <textarea
+              id="admin-notes" className="form-control" rows={3}
+              value={adminNotes}
+              onChange={(event) => setAdminNotes(event.target.value)}
+              placeholder="Only this agent sees this — it is never shown publicly."
+            />
           </div>
-        </ModalPortal>
+        </Modal>
       )}
 
       {viewerIndex !== null && (

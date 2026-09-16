@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { type Service } from '../../types/service';
 import { CardSkeleton } from '../dashboard-admin/Skeleton';
+import Modal from './Modal';
 
 interface ServiceListProps {
   services: Service[];
@@ -256,45 +257,26 @@ const ServiceList: React.FC<ServiceListProps> = ({ services, onEdit, onDelete, i
         ))}
       </div>
 
-      {/* Delete Confirmation Modal */}
+      {/* Delete Confirmation */}
       {deleteConfirm && (
-        <div className="modal fade show" style={{ display: 'block' }} tabIndex={-1}>
-          <div className="modal-dialog">
-            <div className="modal-content">
-              <div className="modal-header">
-                <h5 className="modal-title">Confirm Delete</h5>
-                <button
-                  type="button"
-                  className="btn-close"
-                  onClick={handleDeleteCancel}
-                ></button>
-              </div>
-              <div className="modal-body">
-                <p>Are you sure you want to delete this service? This action cannot be undone.</p>
-              </div>
-              <div className="modal-footer">
-                <button
-                  type="button"
-                  className="btn btn-secondary"
-                  onClick={handleDeleteCancel}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-danger"
-                  onClick={handleDeleteConfirm}
-                >
-                  Delete Service
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <Modal
+          onClose={handleDeleteCancel}
+          title="Confirm Delete"
+          size="sm"
+          footer={(
+            <>
+              <button type="button" className="btn btn-secondary" onClick={handleDeleteCancel}>
+                Cancel
+              </button>
+              <button type="button" className="btn btn-danger" onClick={handleDeleteConfirm}>
+                Delete Service
+              </button>
+            </>
+          )}
+        >
+          <p className="mb-0">Are you sure you want to delete this service? This action cannot be undone.</p>
+        </Modal>
       )}
-
-      {/* Modal Backdrop */}
-      {deleteConfirm && <div className="modal-backdrop fade show"></div>}
     </div>
   );
 };
