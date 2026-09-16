@@ -2,6 +2,7 @@
 @import 'react-modal-video/css/modal-video.css';
 @import "swiper/css/bundle";
 @import "./agent-dashboard.css";
+@import "./modal.css";
 @import "./blog-editor.css";
 
 @import "/assets/css/animate.min.css";

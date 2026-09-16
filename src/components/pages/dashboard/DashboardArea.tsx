@@ -9,13 +9,15 @@ import BlogManagement from '../admin/BlogManagement';
 import AgentBlogManagement from '../admin/AgentBlogManagement';
 import CategoryManagement from '../admin/CategoryManagement';
 import AgentApprovalManagement from '../admin/AgentApprovalManagement';
+import PaymentsManagement from '../admin/PaymentsManagement';
+import PaymentAccountSettings from '../admin/PaymentAccountSettings';
 import SubscriptionRequestsPanel from '../admin/SubscriptionRequestsPanel';
 import AdminDashboardShell from '../../dashboard-admin/AdminDashboardShell';
 import { type AdminNavItem } from '../../dashboard-admin/AdminSidebar';
 import { TableSkeleton } from '../../dashboard-admin/Skeleton';
 import { useGetUsersQuery, useGetSubscriptionsQuery } from '../../../redux/api/dashboardApi';
 
-type ActiveModule = 'users' | 'subscriptions' | 'subscription-requests' | 'agents' | 'categories' | 'blogs';
+type ActiveModule = 'users' | 'subscriptions' | 'subscription-requests' | 'payments' | 'payment-account' | 'agents' | 'categories' | 'blogs';
 type UserRoleFilter = 'all' | 'admin' | 'agent' | 'user';
 
 const DashboardArea: React.FC = () => {
@@ -149,6 +151,22 @@ const DashboardArea: React.FC = () => {
       icon: 'fas fa-file-signature',
       onClick: () => setActiveModule('subscription-requests'),
       active: activeModule === 'subscription-requests',
+      visible: user?.role === 'admin',
+    },
+    {
+      key: 'payments',
+      label: 'Payments',
+      icon: 'fas fa-receipt',
+      onClick: () => setActiveModule('payments'),
+      active: activeModule === 'payments',
+      visible: user?.role === 'admin',
+    },
+    {
+      key: 'payment-account',
+      label: 'Payment Account',
+      icon: 'fas fa-university',
+      onClick: () => setActiveModule('payment-account'),
+      active: activeModule === 'payment-account',
       visible: user?.role === 'admin',
     },
     {
@@ -486,6 +504,14 @@ const DashboardArea: React.FC = () => {
       )}
 
       {/* Category Module - Admin Only */}
+      {activeModule === 'payments' && user?.role === 'admin' && (
+        <PaymentsManagement />
+      )}
+
+      {activeModule === 'payment-account' && user?.role === 'admin' && (
+        <PaymentAccountSettings />
+      )}
+
       {activeModule === 'agents' && user?.role === 'admin' && (
         <AgentApprovalManagement />
       )}

@@ -631,13 +631,6 @@
   box-shadow: var(--admin-shadow-elevated);
 }
 
-.admin-shell .modern-modal-content,
-.admin-shell .cancel-confirmation-modal {
-  background: rgba(255, 255, 255, 0.82);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-}
-
 .admin-shell .empty-state {
   background: var(--glass-bg-soft);
   border-radius: var(--admin-radius-md);

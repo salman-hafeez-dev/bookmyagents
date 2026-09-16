@@ -15,15 +15,9 @@ export const subscriptionRequestService = {
     }
   },
 
-  // Agent: request a new plan, or change the pending request to a different plan
-  requestSubscription: async (subscriptionId: string): Promise<SubscriptionRequestResponse> => {
-    try {
-      const response = await api.post('/agent/subscription-requests', { subscriptionId });
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
-  },
+  // Requesting a plan now goes through paymentService.submitPlanPayment():
+  // the request and its manual payment are submitted together as multipart.
+  // A JSON-only request endpoint no longer exists.
 
   // Admin: list requests, defaults to pending only
   getAdminRequests: async (status: 'pending' | 'approved' | 'rejected' | 'all' = 'pending'): Promise<SubscriptionRequestListResponse> => {

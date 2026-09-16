@@ -3,7 +3,8 @@ import { subscriptionService, type Subscription } from '../../../services/subscr
 import { subscriptionRequestService } from '../../../services/subscriptionRequestService';
 import { type SubscriptionRequest } from '../../../types/subscriptionRequest';
 import { profileService } from '../../../services/profileService';
-import { showToast, getErrorMessage } from '../../../utils/toast';
+import { formatAmount } from '../../../types/payment';
+import PaymentModal from './PaymentModal';
 
 const asId = (value: unknown): string | undefined => {
   if (!value) return undefined;
@@ -15,8 +16,9 @@ const asId = (value: unknown): string | undefined => {
 };
 
 // Agent-facing "Active Subscription" panel (lives in the Agent Dashboard).
-// Requesting a plan never sets the agent's active subscription directly —
-// it only creates a pending SubscriptionRequest for an admin to review.
+// Requesting a plan opens the payment modal first: the request and its manual
+// payment are submitted together. Neither sets the agent's active subscription
+// directly — that happens only once an admin verifies the payment.
 // Category access stays governed by whatever subscription is ALREADY
 // active until that request is approved.
 const ActiveSubscriptionPanel: React.FC = () => {
@@ -24,7 +26,8 @@ const ActiveSubscriptionPanel: React.FC = () => {
   const [requests, setRequests] = useState<SubscriptionRequest[]>([]);
   const [currentSubscription, setCurrentSubscription] = useState<Subscription | null>(null);
   const [loading, setLoading] = useState(true);
-  const [submittingId, setSubmittingId] = useState<string | null>(null);
+  // The plan the agent is paying for; non-null while the payment modal is open.
+  const [payingPlan, setPayingPlan] = useState<Subscription | null>(null);
 
   useEffect(() => {
     fetchData();
@@ -51,17 +54,9 @@ const ActiveSubscriptionPanel: React.FC = () => {
   const pendingRequest = requests.find((r) => r.status === 'pending');
   const currentSubscriptionId = asId(currentSubscription);
 
-  const handleRequest = async (planId: string) => {
-    try {
-      setSubmittingId(planId);
-      await subscriptionRequestService.requestSubscription(planId);
-      showToast.success(pendingRequest ? 'Your subscription request was updated.' : 'Subscription request submitted. An admin will review it shortly.');
-      fetchData();
-    } catch (error) {
-      showToast.error(getErrorMessage(error));
-    } finally {
-      setSubmittingId(null);
-    }
+  const handlePaymentSubmitted = () => {
+    setPayingPlan(null);
+    fetchData();
   };
 
   if (loading) {
@@ -97,7 +92,8 @@ const ActiveSubscriptionPanel: React.FC = () => {
             <strong>
               {typeof pendingRequest.subscriptionId === 'object' ? pendingRequest.subscriptionId.name : 'a plan'}
             </strong>{' '}
-            is pending admin approval. You can request a different plan once this one is approved or rejected.
+            is pending admin approval. Your payment is being verified — you&apos;ll move to the new plan once
+            it&apos;s confirmed. You can request a different plan after this one is approved or rejected.
           </div>
         )}
 
@@ -116,7 +112,7 @@ const ActiveSubscriptionPanel: React.FC = () => {
                 <div className={`card h-100 ${isCurrent ? 'border-success' : ''}`}>
                   <div className="card-body d-flex flex-column">
                     <h6>{plan.name}</h6>
-                    <p className="mb-1">${plan.price}/mo</p>
+                    <p className="mb-1">{formatAmount(plan.price)}/mo</p>
                     <p className="text-muted small mb-3">
                       Up to {plan.categoryLimit ?? 1} categor{(plan.categoryLimit ?? 1) === 1 ? 'y' : 'ies'}
                     </p>
@@ -128,10 +124,9 @@ const ActiveSubscriptionPanel: React.FC = () => {
                       ) : showButton ? (
                         <button
                           className="btn btn-primary btn-sm w-100"
-                          disabled={submittingId === plan._id}
-                          onClick={() => handleRequest(plan._id)}
+                          onClick={() => setPayingPlan(plan)}
                         >
-                          {submittingId === plan._id ? 'Submitting...' : 'Request Plan'}
+                          Request Plan
                         </button>
                       ) : null}
                     </div>
@@ -142,6 +137,14 @@ const ActiveSubscriptionPanel: React.FC = () => {
           })}
         </div>
       </div>
+
+      {payingPlan && (
+        <PaymentModal
+          plan={payingPlan}
+          onClose={() => setPayingPlan(null)}
+          onSubmitted={handlePaymentSubmitted}
+        />
+      )}
     </div>
   );
 };
