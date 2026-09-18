@@ -9,12 +9,13 @@ import ActiveSubscriptionPanel from './ActiveSubscriptionPanel';
 import AgentProfileSetup from './profile/AgentProfileSetup';
 import AgentPaymentsPanel from './AgentPaymentsPanel';
 import AgentPackagesPanel from './packages/AgentPackagesPanel';
+import AgentLeadsPanel from './leads/AgentLeadsPanel';
 import InnerHeader from '../../../layouts/headers/InnerHeader';
 import AdminDashboardShell from '../../dashboard-admin/AdminDashboardShell';
 import { type AdminNavItem } from '../../dashboard-admin/AdminSidebar';
 import { useGetAgentServicesQuery, useGetServiceStatsQuery } from '../../../redux/api/dashboardApi';
 
-type ActiveView = 'list' | 'create' | 'edit' | 'packages' | 'blogs' | 'subscription' | 'profile' | 'payments';
+type ActiveView = 'list' | 'create' | 'edit' | 'packages' | 'leads' | 'blogs' | 'subscription' | 'profile' | 'payments';
 
 const AgentDashboard: React.FC = () => {
   const { user } = useAuth();
@@ -122,6 +123,13 @@ const AgentDashboard: React.FC = () => {
       active: activeView === 'profile',
     },
     {
+      key: 'leads',
+      label: 'Leads',
+      icon: 'fas fa-inbox',
+      onClick: () => setActiveView('leads'),
+      active: activeView === 'leads',
+    },
+    {
       key: 'packages',
       label: 'My Packages',
       icon: 'fas fa-suitcase-rolling',
@@ -187,6 +195,9 @@ const AgentDashboard: React.FC = () => {
 
         {/* Packages — the offers customers actually search and compare */}
         {activeView === 'packages' && <AgentPackagesPanel />}
+
+        {/* Leads — what the subscription actually delivers */}
+        {activeView === 'leads' && <AgentLeadsPanel />}
 
         {/* Services List View */}
         {activeView === 'list' && (

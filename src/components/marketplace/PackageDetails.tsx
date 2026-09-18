@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import HeaderThree from '../../layouts/headers/HeaderThree';
 import FooterThree from '../../layouts/footers/FooterThree';
 import ContactActions from './ContactActions';
+import RequestQuoteModal from './RequestQuoteModal';
 import { DetailSkeleton, NotFoundState, ErrorState } from './DetailStates';
 import { type TravelPackage } from '../../types/package';
 import { packageService } from '../../services/packageService';
@@ -18,6 +19,7 @@ const PackageDetails: React.FC = () => {
   const [travelPackage, setTravelPackage] = useState<TravelPackage | null>(null);
   const [state, setState] = useState<LoadState>('loading');
   const [activeImage, setActiveImage] = useState(0);
+  const [quoteOpen, setQuoteOpen] = useState(false);
 
   const load = useCallback(async () => {
     if (!id) {
@@ -210,6 +212,9 @@ const PackageDetails: React.FC = () => {
                   whatsapp={agent?.whatsapp}
                   phone={agent?.phone}
                   message={enquiry}
+                  agentId={agent?._id}
+                  packageId={pkg._id}
+                  onRequestQuote={() => setQuoteOpen(true)}
                   className="flex-column"
                 />
                 <p className="small text-muted mt-3 mb-0">
@@ -267,10 +272,21 @@ const PackageDetails: React.FC = () => {
             whatsapp={agent?.whatsapp}
             phone={agent?.phone}
             message={enquiry}
+            agentId={agent?._id}
+            packageId={pkg._id}
             className="flex-grow-1"
             size="compact"
           />
         </div>
+
+        <RequestQuoteModal
+          open={quoteOpen}
+          onClose={() => setQuoteOpen(false)}
+          packageId={pkg._id}
+          agentId={agent?._id}
+          agentName={agent?.companyName}
+          packageTitle={pkg.title}
+        />
       </div>
     );
   };
