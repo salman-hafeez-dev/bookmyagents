@@ -73,3 +73,29 @@ export interface QuoteRequestInput {
   budget?: number;
   message?: string;
 }
+
+// Admin view: the same lead, plus which agent it belongs to.
+export interface AdminLead extends Lead {
+  agent?: { _id: string; companyName?: string; city?: string } | null;
+}
+
+export interface AdminLeadFilters extends LeadFilters {
+  categoryId?: string;
+  agentId?: string;
+  search?: string;
+}
+
+export interface AdminLeadListResponse {
+  success: boolean;
+  data: AdminLead[];
+  pagination: { page: number; limit: number; total: number; pages: number };
+}
+
+export interface PlatformLeadStats {
+  days: number;
+  total: number;
+  byType: { _id: LeadType; count: number }[];
+  byStatus: { _id: LeadStatus; count: number }[];
+  byCategory: { _id: string; name: string; slug: string; count: number }[];
+  topAgents: { _id: string; companyName?: string; city?: string; leads: number; converted: number }[];
+}

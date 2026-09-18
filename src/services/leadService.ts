@@ -1,6 +1,8 @@
 import api from './api';
 import { getVisitorId } from '../utils/visitor';
 import {
+  type AdminLeadFilters,
+  type AdminLeadListResponse,
   type Lead,
   type LeadFilters,
   type LeadListResponse,
@@ -74,6 +76,20 @@ export const leadService = {
 
   getPlatformStats: async (days = 30) => {
     const response = await api.get(`/admin/leads/stats?days=${days}`);
+    return response.data;
+  },
+
+  getAllLeads: async (filters: AdminLeadFilters = {}): Promise<AdminLeadListResponse> => {
+    const params = new URLSearchParams();
+    if (filters.status) params.append('status', filters.status);
+    if (filters.type) params.append('type', filters.type);
+    if (filters.categoryId) params.append('categoryId', filters.categoryId);
+    if (filters.agentId) params.append('agentId', filters.agentId);
+    if (filters.search) params.append('search', filters.search);
+    if (filters.page) params.append('page', String(filters.page));
+    if (filters.limit) params.append('limit', String(filters.limit));
+
+    const response = await api.get(`/admin/leads?${params.toString()}`);
     return response.data;
   },
 };

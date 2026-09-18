@@ -10,6 +10,8 @@ import {
 import { leadService } from '../../../../services/leadService';
 import { showToast, getErrorMessage } from '../../../../utils/toast';
 import LeadDetail from './LeadDetail';
+import StatTile from '../../../dashboard-admin/StatTile';
+import Pager from '../../../dashboard-admin/Pager';
 import { STATUS_META, STATUS_ORDER, TYPE_META, timeAgo } from './leadMeta';
 
 const TYPE_FILTERS: { value: LeadType | ''; label: string }[] = [
@@ -25,6 +27,7 @@ const TYPE_FILTERS: { value: LeadType | ''; label: string }[] = [
 const AgentLeadsPanel: React.FC = () => {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [summary, setSummary] = useState<LeadSummary | null>(null);
+  const [pagination, setPagination] = useState({ page: 1, pages: 1, total: 0, limit: 20 });
   const [filters, setFilters] = useState<LeadFilters>({ page: 1, limit: 20 });
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
@@ -37,6 +40,7 @@ const AgentLeadsPanel: React.FC = () => {
       const response = await leadService.getMyLeads(filters);
       setLeads(response.data);
       setSummary(response.summary);
+      setPagination(response.pagination);
     } catch (error) {
       setHasError(true);
       showToast.error(getErrorMessage(error));
@@ -62,12 +66,12 @@ const AgentLeadsPanel: React.FC = () => {
     setFilters((current) => ({ ...current, status, page: 1 }));
 
   const tiles = [
-    { label: 'Total leads', value: summary?.totalLeads ?? 0, icon: 'fas fa-inbox' },
-    { label: 'New', value: summary?.newLeads ?? 0, icon: 'fas fa-bell' },
-    { label: 'This month', value: summary?.thisMonth ?? 0, icon: 'fas fa-calendar-day' },
-    { label: 'Converted', value: summary?.converted ?? 0, icon: 'fas fa-handshake' },
-    { label: 'Profile views', value: summary?.profileViews ?? 0, icon: 'fas fa-eye' },
-    { label: 'Package views', value: summary?.packageViews ?? 0, icon: 'fas fa-images' },
+    { label: 'Total leads', value: summary?.totalLeads ?? 0, icon: 'fas fa-inbox', tone: 'primary' as const },
+    { label: 'New', value: summary?.newLeads ?? 0, icon: 'fas fa-bell', tone: 'warning' as const },
+    { label: 'This month', value: summary?.thisMonth ?? 0, icon: 'fas fa-calendar-day', tone: 'info' as const },
+    { label: 'Converted', value: summary?.converted ?? 0, icon: 'fas fa-handshake', tone: 'success' as const },
+    { label: 'Profile views', value: summary?.profileViews ?? 0, icon: 'fas fa-eye', tone: 'muted' as const },
+    { label: 'Package views', value: summary?.packageViews ?? 0, icon: 'fas fa-images', tone: 'muted' as const },
   ];
 
   const renderList = () => {
@@ -182,6 +186,15 @@ const AgentLeadsPanel: React.FC = () => {
             );
           })}
         </ul>
+
+        <Pager
+          page={pagination.page}
+          pages={pagination.pages}
+          total={pagination.total}
+          limit={pagination.limit}
+          noun="leads"
+          onChange={(page) => setFilters((current) => ({ ...current, page }))}
+        />
       </div>
     );
   };
@@ -191,58 +204,54 @@ const AgentLeadsPanel: React.FC = () => {
       <div className="row g-3 mb-4">
         {tiles.map((tile) => (
           <div className="col-xl-2 col-lg-4 col-md-4 col-6" key={tile.label}>
-            <div className="stats-card h-100">
-              <div className="stats-icon"><i className={tile.icon}></i></div>
-              <div className="stats-content">
-                <h3>{tile.value}</h3>
-                <p>{tile.label}</p>
-              </div>
-            </div>
+            <StatTile label={tile.label} value={tile.value} icon={tile.icon} tone={tile.tone} />
           </div>
         ))}
       </div>
 
       <div className="dashboard-card mb-3">
         <div className="card-body">
-          <div className="bma-lead-tabs mb-3">
-            <button
-              type="button"
-              className={`bma-lead-tab${!filters.status ? ' is-active' : ''}`}
-              onClick={() => statusFilter(undefined)}
-            >
-              All
-              <span className="bma-tab-count">{summary?.totalLeads ?? 0}</span>
-            </button>
-            {STATUS_ORDER.map((status) => (
+          <div className="bma-filter-bar">
+            <div className="bma-lead-tabs">
               <button
-                key={status}
                 type="button"
-                className={`bma-lead-tab${filters.status === status ? ' is-active' : ''}`}
-                onClick={() => statusFilter(status)}
+                className={`bma-lead-tab${!filters.status ? ' is-active' : ''}`}
+                onClick={() => statusFilter(undefined)}
               >
-                {STATUS_META[status].label}
-                <span className="bma-tab-count">{summary?.statusCounts?.[status] ?? 0}</span>
+                All
+                <span className="bma-tab-count">{summary?.totalLeads ?? 0}</span>
               </button>
-            ))}
-          </div>
-
-          <div className="d-flex flex-wrap align-items-center gap-2">
-            <label className="small text-muted mb-0" htmlFor="lead-type">Show</label>
-            <select
-              id="lead-type"
-              className="form-select form-select-sm"
-              style={{ width: 'auto' }}
-              value={filters.type || ''}
-              onChange={(event) => setFilters((current) => ({
-                ...current,
-                type: (event.target.value || undefined) as LeadType | undefined,
-                page: 1,
-              }))}
-            >
-              {TYPE_FILTERS.map((option) => (
-                <option key={option.value} value={option.value}>{option.label}</option>
+              {STATUS_ORDER.map((status) => (
+                <button
+                  key={status}
+                  type="button"
+                  className={`bma-lead-tab${filters.status === status ? ' is-active' : ''}`}
+                  onClick={() => statusFilter(status)}
+                >
+                  {STATUS_META[status].label}
+                  <span className="bma-tab-count">{summary?.statusCounts?.[status] ?? 0}</span>
+                </button>
               ))}
-            </select>
+            </div>
+
+            <div className="bma-filter-bar-end">
+              {/* <label className="small text-muted mb-0" htmlFor="lead-type">Show</label> */}
+              <select
+                id="lead-type"
+                className="form-select form-select-sm"
+                style={{ width: 'auto' }}
+                value={filters.type || ''}
+                onChange={(event) => setFilters((current) => ({
+                  ...current,
+                  type: (event.target.value || undefined) as LeadType | undefined,
+                  page: 1,
+                }))}
+              >
+                {TYPE_FILTERS.map((option) => (
+                  <option key={option.value} value={option.value}>{option.label}</option>
+                ))}
+              </select>
+            </div>
           </div>
         </div>
       </div>

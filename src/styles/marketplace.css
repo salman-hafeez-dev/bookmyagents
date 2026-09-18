@@ -832,3 +832,203 @@
   .bma-lead-meta { align-items: flex-end; }
   .bma-lead-time { display: none; }
 }
+
+/* ---- Dashboard stat tile ----------------------------------------------- */
+
+.bma-stat {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+  height: 100%;
+  padding: 18px;
+  border: 1px solid var(--bma-line);
+  border-radius: 14px;
+  background: #fff;
+  transition: box-shadow .2s ease, transform .2s ease;
+}
+
+.bma-stat:hover {
+  box-shadow: 0 10px 26px rgba(24, 16, 54, .08);
+  transform: translateY(-2px);
+}
+
+.bma-stat-icon {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  font-size: 17px;
+}
+
+.bma-stat-icon--primary { background: #f1eefb; color: var(--bma-primary); }
+.bma-stat-icon--success { background: #e8f7ee; color: #12794a; }
+.bma-stat-icon--info { background: #e8f1ff; color: #1b62d4; }
+.bma-stat-icon--warning { background: #fdf0e6; color: #b3560f; }
+.bma-stat-icon--muted { background: #f1f0f4; color: #6f6a85; }
+
+.bma-stat-body {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.2;
+}
+
+.bma-stat-value {
+  color: var(--bma-ink);
+  font-size: 24px;
+  font-weight: 700;
+}
+
+/* The label lines up under the value whether it sits inside .bma-stat-body or
+ * as a direct child of .bma-stat, so the tile survives either markup. */
+.bma-stat > .bma-stat-label {
+  flex: 1 1 100%;
+  margin-top: -6px;
+  padding-left: 58px;
+}
+
+.bma-stat-label {
+  overflow: hidden;
+  color: var(--bma-muted);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .02em;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* ---- Filter bar --------------------------------------------------------- */
+
+/* The status tabs and the activity filter belong to the same decision, so
+ * they share a row: tabs scroll on the left, the dropdown stays on the right. */
+.bma-filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.bma-filter-bar .bma-lead-tabs {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.bma-filter-bar-end {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 8px;
+}
+
+@media (max-width: 767px) {
+  .bma-filter-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .bma-filter-bar-end { justify-content: flex-end; }
+}
+
+/* ---- Pagination --------------------------------------------------------- */
+
+.bma-pager {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 20px;
+  border-top: 1px solid var(--bma-line);
+}
+
+.bma-pager-info {
+  color: var(--bma-muted);
+  font-size: 13px;
+}
+
+.bma-pager-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.bma-pager-btn {
+  min-width: 36px;
+  height: 36px;
+  padding: 0 10px;
+  border: 1px solid var(--bma-line);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--bma-muted);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color .18s ease, color .18s ease, background-color .18s ease;
+}
+
+.bma-pager-btn:hover:not(:disabled):not(.is-active) {
+  border-color: var(--bma-primary);
+  color: var(--bma-primary);
+}
+
+.bma-pager-btn.is-active {
+  border-color: transparent;
+  background: var(--bma-gradient);
+  color: #fff;
+}
+
+.bma-pager-btn:disabled {
+  opacity: .45;
+  cursor: not-allowed;
+}
+
+/* ---- Admin lead analytics ---------------------------------------------- */
+
+.bma-meter {
+  height: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #f1f0f7;
+}
+
+.bma-meter > span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--bma-gradient);
+  transition: width .3s ease;
+}
+
+.bma-lead-table thead th {
+  border-bottom: 1px solid var(--bma-line);
+  color: var(--bma-muted);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .02em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.bma-lead-table tbody td {
+  border-bottom: 1px solid var(--bma-line);
+  color: var(--bma-ink);
+  vertical-align: middle;
+}
+
+.bma-lead-table tbody tr:hover {
+  background: #faf9fd;
+}
+
+/* The table inherits the round icon from the list; it only needs to be
+ * smaller when it sits inside a table cell. */
+.bma-lead-table .bma-lead-icon {
+  width: 30px;
+  height: 30px;
+  font-size: 13px;
+  vertical-align: middle;
+}
