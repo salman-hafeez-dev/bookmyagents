@@ -1,4 +1,5 @@
 import React from 'react';
+import { useConfirm } from '../../../contexts/ConfirmContext';
 import { type Blog } from '../../../types/blog';
 
 interface BlogDetailProps {
@@ -16,6 +17,8 @@ const BlogDetail: React.FC<BlogDetailProps> = ({
     onReject,
     onEdit
 }) => {
+    // Shadows window.confirm with the styled dialog.
+    const confirm = useConfirm();
     const getStatusBadge = (status: string) => {
         const statusClasses = {
             pending: 'badge-warning',
@@ -71,8 +74,15 @@ const BlogDetail: React.FC<BlogDetailProps> = ({
                                 <div className="btn-group">
                                     <button
                                         className="btn btn-success"
-                                        onClick={() => {
-                                            if (window.confirm('Are you sure you want to approve this blog? It will be published and visible to users.')) {
+                                        onClick={async () => {
+                                            if (await confirm({
+                                                title: 'Approve Blog',
+                                                heading: 'Publish This Post',
+                                                description: 'The blog will be published and visible to users.',
+                                                icon: 'success',
+                                                actionColor: 'success',
+                                                actionLabel: 'Approve & Publish',
+                                            })) {
                                                 onApprove(blog._id);
                                             }
                                         }}
@@ -82,8 +92,15 @@ const BlogDetail: React.FC<BlogDetailProps> = ({
                                     </button>
                                     <button
                                         className="btn btn-danger"
-                                        onClick={() => {
-                                            if (window.confirm('Are you sure you want to reject this blog? The author will be notified and can make changes.')) {
+                                        onClick={async () => {
+                                            if (await confirm({
+                                                title: 'Reject Blog',
+                                                heading: 'Send Back To Author',
+                                                description: 'The author will be notified and can make changes before resubmitting.',
+                                                icon: 'warning',
+                                                actionColor: 'danger',
+                                                actionLabel: 'Reject Blog',
+                                            })) {
                                                 onReject(blog._id);
                                             }
                                         }}
@@ -225,8 +242,15 @@ const BlogDetail: React.FC<BlogDetailProps> = ({
                                                 <div className="d-grid gap-2">
                                                     <button
                                                         className="btn btn-success"
-                                                        onClick={() => {
-                                                            if (window.confirm('Are you sure you want to approve this blog? It will be published and visible to users.')) {
+                                                        onClick={async () => {
+                                                            if (await confirm({
+                                                title: 'Approve Blog',
+                                                heading: 'Publish This Post',
+                                                description: 'The blog will be published and visible to users.',
+                                                icon: 'success',
+                                                actionColor: 'success',
+                                                actionLabel: 'Approve & Publish',
+                                            })) {
                                                                 onApprove(blog._id);
                                                             }
                                                         }}
@@ -236,8 +260,15 @@ const BlogDetail: React.FC<BlogDetailProps> = ({
                                                     </button>
                                                     <button
                                                         className="btn btn-danger"
-                                                        onClick={() => {
-                                                            if (window.confirm('Are you sure you want to reject this blog? The author will be notified and can make changes.')) {
+                                                        onClick={async () => {
+                                                            if (await confirm({
+                                                title: 'Reject Blog',
+                                                heading: 'Send Back To Author',
+                                                description: 'The author will be notified and can make changes before resubmitting.',
+                                                icon: 'warning',
+                                                actionColor: 'danger',
+                                                actionLabel: 'Reject Blog',
+                                            })) {
                                                                 onReject(blog._id);
                                                             }
                                                         }}

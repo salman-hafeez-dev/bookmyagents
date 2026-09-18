@@ -4,8 +4,9 @@ import { type SubscriptionRequest } from '../../../types/subscriptionRequest';
 import { TableSkeleton } from '../../dashboard-admin/Skeleton';
 import PaymentDetailsModal from '../../common/PaymentDetailsModal';
 import PaymentStatusBadge from '../../common/PaymentStatusBadge';
-import Modal from '../../common/Modal';
+import ConfirmationModal from '../../common/ConfirmationModal';
 import { formatAmount, type Payment } from '../../../types/payment';
+import { useConfirm } from '../../../contexts/ConfirmContext';
 
 // Admin view of pending subscription requests. Approving here calls the
 // same assignSubscriptionToUser path the existing direct-assign endpoint
@@ -21,6 +22,7 @@ const SubscriptionRequestsPanel: React.FC = () => {
   // Request being rejected; the reason is collected before the call is made.
   const [rejectingId, setRejectingId] = useState<string | null>(null);
   const [rejectionReason, setRejectionReason] = useState('');
+  const confirm = useConfirm();
 
   useEffect(() => {
     fetchRequests();
@@ -39,6 +41,16 @@ const SubscriptionRequestsPanel: React.FC = () => {
   };
 
   const handleApprove = async (requestId: string) => {
+    const ok = await confirm({
+      title: 'Verify Payment & Approve',
+      heading: 'Activate This Plan',
+      description: 'The payment is marked verified, the plan is activated for the agent and an invoice is issued. This happens as one atomic action.',
+      icon: 'success',
+      actionColor: 'success',
+      actionLabel: 'Verify & Approve',
+    });
+    if (!ok) return;
+
     try {
       setActingId(requestId);
       await subscriptionRequestService.approveRequest(requestId);
@@ -203,43 +215,31 @@ const SubscriptionRequestsPanel: React.FC = () => {
         <PaymentDetailsModal payment={viewingPayment} onClose={() => setViewingPayment(null)} />
       )}
 
-      {rejectingId && (
-        <Modal
-          onClose={() => setRejectingId(null)}
-          title="Reject this request?"
-          size="sm"
-          busy={!!actingId}
-          footer={(
-            <>
-              <button
-                type="button" className="btn btn-outline-secondary"
-                onClick={() => setRejectingId(null)} disabled={!!actingId}
-              >
-                Cancel
-              </button>
-              <button type="button" className="btn btn-danger" onClick={handleReject} disabled={!!actingId}>
-                {actingId ? 'Rejecting…' : 'Reject request'}
-              </button>
-            </>
-          )}
-        >
-          <p>
-            The payment is marked rejected and the agent stays on their current plan. They can submit a
-            corrected payment afterwards.
-          </p>
-          <label htmlFor="sub-rejection-reason" className="form-label fw-semibold">
-            Reason <span className="text-muted fw-normal">(shown to the agent)</span>
-          </label>
-          <textarea
-            id="sub-rejection-reason"
-            className="form-control"
-            rows={3}
-            value={rejectionReason}
-            onChange={(event) => setRejectionReason(event.target.value)}
-            placeholder="e.g. The transaction number doesn't match any transfer we received."
-          />
-        </Modal>
-      )}
+      <ConfirmationModal
+        isOpen={!!rejectingId}
+        title="Reject Request"
+        heading="Send Back To The Agent"
+        description="The payment is marked rejected and the agent stays on their current plan. They can submit a corrected payment afterwards."
+        icon="warning"
+        actionColor="danger"
+        actionLabel={actingId ? 'Rejecting…' : 'Reject Request'}
+        size="md"
+        loading={!!actingId}
+        onConfirm={handleReject}
+        onCancel={() => setRejectingId(null)}
+      >
+        <label htmlFor="sub-rejection-reason" className="form-label fw-semibold">
+          Reason <span className="text-muted fw-normal">(shown to the agent)</span>
+        </label>
+        <textarea
+          id="sub-rejection-reason"
+          className="form-control"
+          rows={3}
+          value={rejectionReason}
+          onChange={(event) => setRejectionReason(event.target.value)}
+          placeholder="e.g. The transaction number doesn't match any transfer we received."
+        />
+      </ConfirmationModal>
     </div>
   );
 };

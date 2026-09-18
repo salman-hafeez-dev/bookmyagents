@@ -5,6 +5,7 @@ import { paymentAccountService } from '../../../services/paymentService';
 import { extractApiError } from '../../../services/agentProfileService';
 import { showToast } from '../../../utils/toast';
 import { type PaymentAccount } from '../../../types/payment';
+import { useConfirm } from '../../../contexts/ConfirmContext';
 
 const EMPTY: PaymentAccount = {
   bankName: '', accountTitle: '', accountNumber: '', iban: '',
@@ -15,6 +16,7 @@ const EMPTY: PaymentAccount = {
 // Kept out of the frontend as data so the account can be changed without a
 // code change or redeploy.
 const PaymentAccountSettings: React.FC = () => {
+  const confirm = useConfirm();
   const [accounts, setAccounts] = useState<PaymentAccount[]>([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<PaymentAccount | null>(null);
@@ -70,7 +72,17 @@ const PaymentAccountSettings: React.FC = () => {
 
   const remove = async (account: PaymentAccount) => {
     if (!account._id) return;
-    if (!window.confirm(`Delete the ${account.bankName} account? This cannot be undone.`)) return;
+    const ok = await confirm({
+      title: 'Delete Payment Account',
+      subtitle: account.bankName,
+      heading: 'Remove These Bank Details',
+      description: 'Agents will no longer see this account. You can only delete an inactive account — activate another one first if this is the active set of details.',
+      icon: 'error',
+      actionColor: 'danger',
+      actionLabel: 'Delete Account',
+      dangerZone: true,
+    });
+    if (!ok) return;
     try {
       await paymentAccountService.remove(account._id);
       showToast.success('Payment account deleted');

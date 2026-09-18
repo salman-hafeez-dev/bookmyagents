@@ -3,6 +3,7 @@ import { agentProfileService, extractApiError } from '../../../../services/agent
 import { showToast } from '../../../../utils/toast';
 import { formatFileSize } from '../../../../utils/formatFileSize';
 import { type AgentProfile, type ProfileStep } from '../../../../types/agentProfile';
+import { useConfirm } from '../../../../contexts/ConfirmContext';
 
 interface StepReviewSubmitProps {
   profile: AgentProfile;
@@ -28,12 +29,23 @@ const SummaryRow: React.FC<{ label: string; value?: React.ReactNode }> = ({ labe
 
 const StepReviewSubmit: React.FC<StepReviewSubmitProps> = ({ profile, onRefresh, onBack, onGoToStep }) => {
   const [submitting, setSubmitting] = useState(false);
+  const confirm = useConfirm();
 
   const { basicInfo, businessDetails } = profile;
   const missing = REQUIRED_STEPS.filter((step) => !profile.profileCompletion[step.key]);
   const alreadyDecided = profile.status === 'pending' || profile.status === 'approved';
 
   const handleSubmit = async () => {
+    const ok = await confirm({
+      title: 'Submit For Review',
+      heading: 'Send Profile To An Admin',
+      description: 'Your profile will be locked while an admin reviews it, so you won\'t be able to edit until there\'s a decision.',
+      icon: 'info',
+      actionColor: 'primary',
+      actionLabel: 'Submit For Review',
+    });
+    if (!ok) return;
+
     setSubmitting(true);
     try {
       await agentProfileService.submitForReview();

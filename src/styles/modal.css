@@ -186,3 +186,102 @@
   .app-modal-overlay,
   .app-modal { animation: none; }
 }
+
+/* ---------- Confirmation dialog content ---------- */
+
+.app-confirm {
+  text-align: center;
+}
+
+.app-confirm__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 18px;
+  border-radius: 50%;
+  font-size: 26px;
+  line-height: 1;
+}
+
+.app-confirm__icon--danger  { background: rgba(220, 53, 69, 0.12);  color: #dc3545; }
+.app-confirm__icon--primary { background: rgba(91, 91, 219, 0.12);  color: #5b5bdb; }
+.app-confirm__icon--success { background: rgba(40, 167, 69, 0.12);  color: #28a745; }
+
+.app-confirm__heading {
+  display: inline-block;
+  margin: 0 0 12px;
+  padding-bottom: 8px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #16202c;
+  border-bottom: 3px solid currentColor;
+}
+
+.app-confirm__heading--danger  { border-bottom-color: #dc3545; }
+.app-confirm__heading--primary { border-bottom-color: #5b5bdb; }
+.app-confirm__heading--success { border-bottom-color: #28a745; }
+
+.app-confirm__description {
+  margin: 0;
+  color: #5b6472;
+  line-height: 1.55;
+}
+
+.app-confirm__danger-note {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 18px;
+  padding: 12px 14px;
+  border: 1px solid rgba(220, 53, 69, 0.28);
+  border-radius: 10px;
+  background: rgba(220, 53, 69, 0.07);
+  color: #a71d2a;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.app-confirm__body {
+  margin-top: 20px;
+  text-align: left;
+}
+
+/* ---------- Password strength meter ---------- */
+
+.app-password-meter {
+  display: flex;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.app-password-meter__segment {
+  flex: 1;
+  height: 4px;
+  border-radius: 2px;
+  background: #e6e9ee;
+  transition: background-color 0.2s ease;
+}
+
+.app-password-meter__segment--danger  { background: #dc3545; }
+.app-password-meter__segment--warning { background: #f0ad4e; }
+.app-password-meter__segment--success { background: #28a745; }
+
+.app-password-rules {
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.82rem;
+}
+
+.app-password-rules li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 2px 0;
+  color: #6b7480;
+}
+
+.app-password-rules li.is-met { color: #1d7a3a; }

@@ -6,6 +6,7 @@ import { showToast } from '../../../utils/toast';
 import { formatFileSize } from '../../../utils/formatFileSize';
 import { formatAmount, type PaymentAccount } from '../../../types/payment';
 import { type Subscription } from '../../../services/subscriptionService';
+import { useConfirm } from '../../../contexts/ConfirmContext';
 
 interface PaymentModalProps {
   plan: Subscription;
@@ -66,6 +67,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ plan, onClose, onSubmitted 
   const [submitting, setSubmitting] = useState(false);
   const [progress, setProgress] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const confirm = useConfirm();
 
   useEffect(() => {
     let cancelled = false;
@@ -104,6 +106,18 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ plan, onClose, onSubmitted 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     if (submitting) return; // guard against a double-click firing two requests
+
+    const ok = await confirm({
+      title: 'Submit Payment',
+      subtitle: plan.name,
+      heading: 'Confirm Your Transfer',
+      description: 'Check the transaction number and screenshot are correct — an admin verifies them before your plan is activated.',
+      icon: 'info',
+      actionColor: 'primary',
+      actionLabel: 'Submit Payment',
+    });
+    if (!ok) return;
+
 
     const nextErrors: Record<string, string> = {};
     if (!transactionNumber.trim()) nextErrors.transactionNumber = 'Transaction number is required';

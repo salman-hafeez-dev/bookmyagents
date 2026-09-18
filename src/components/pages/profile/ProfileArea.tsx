@@ -3,6 +3,9 @@ import { profileService, type ProfileData, type UpdateProfileData } from '../../
 import { categoryService } from '../../../services/categoryService';
 import { type Category } from '../../../types/category';
 import { showToast, getErrorMessage } from '../../../utils/toast';
+import AgentResetPasswordModal from '../../modals/AgentResetPasswordModal';
+import { useAuth } from '../../../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 const ProfileArea: React.FC = () => {
     const [profile, setProfile] = useState<ProfileData | null>(null);
@@ -13,6 +16,21 @@ const ProfileArea: React.FC = () => {
     const [avatarFile, setAvatarFile] = useState<File | null>(null);
     const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
     const avatarInputRef = useRef<HTMLInputElement>(null);
+    const [showResetPassword, setShowResetPassword] = useState(false);
+    const { logout } = useAuth();
+    // Expertise (visa specialisms) and self-service password reset are agent
+    // concerns; an admin's profile shouldn't offer either.
+    const isAdminUser = profile?.role === 'admin';
+    const navigate = useNavigate();
+
+    // Changing the password invalidates every token this account holds, so the
+    // current session is already dead — sign out rather than leave the user
+    // clicking around a page whose next request will 401.
+    const handlePasswordChanged = async () => {
+        setShowResetPassword(false);
+        await logout();
+        navigate('/login');
+    };
     const [formData, setFormData] = useState<UpdateProfileData>({
         fullName: '',
         phoneNumber: '',
@@ -242,8 +260,20 @@ const ProfileArea: React.FC = () => {
 
                         {/* Profile Card */}
                         <div className="profile-card">
-                            <div className="card-header d-flex justify-content-between align-items-center">
-                                <h4>Profile Information</h4>
+                            <div className="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+                                <h4 className="mb-0">Profile Information</h4>
+                                <div className="d-flex gap-2">
+                                {!isAdminUser && (
+                                <button
+                                    type="button"
+                                    className="btn btn-light"
+                                    onClick={() => setShowResetPassword(true)}
+                                    disabled={updating}
+                                >
+                                    <i className="fas fa-lock me-2"></i>
+                                    Reset Password
+                                </button>
+                                )}
                                 <button
                                     className={`btn ${isEditing ? 'btn-secondary' : 'btn-primary'}`}
                                     onClick={() => setIsEditing(!isEditing)}
@@ -261,6 +291,7 @@ const ProfileArea: React.FC = () => {
                                         </>
                                     )}
                                 </button>
+                                </div>
                             </div>
                             <div className="card-body">
                                 {isEditing ? (
@@ -348,7 +379,7 @@ const ProfileArea: React.FC = () => {
                                                     required
                                                 />
                                             </div>
-                                            <div className="col-12">
+                                            {!isAdminUser && (<div className="col-12">
                                                 <label className="form-label">Expertise</label>
                                                 <div className="expertise-multiselect">
                                                     <div className="row g-2">
@@ -385,7 +416,7 @@ const ProfileArea: React.FC = () => {
                                                         </div>
                                                     )}
                                                 </div>
-                                            </div>
+                                            </div>)}
                                             {profile?.role === 'agent' && (
                                                 <div className="col-12">
                                                     <label className="form-label">
@@ -511,7 +542,7 @@ const ProfileArea: React.FC = () => {
                                                 </div>
                                             </div>
                                             <div className="col-12">
-                                                <div className="info-item">
+                                                {!isAdminUser && (<div className="info-item">
                                                     <label className="info-label">Expertise</label>
                                                     <div className="info-value">
                                                         {profile?.expertise && profile.expertise.length > 0 ? (
@@ -529,7 +560,7 @@ const ProfileArea: React.FC = () => {
                                                             </span>
                                                         )}
                                                     </div>
-                                                </div>
+                                                </div>)}
                                             </div>
                                             {profile?.role === 'agent' && (
                                                 <div className="col-12">
@@ -566,6 +597,12 @@ const ProfileArea: React.FC = () => {
                     </div>
                 </div>
             </div>
+
+            <AgentResetPasswordModal
+                isOpen={showResetPassword && !isAdminUser}
+                onSuccess={handlePasswordChanged}
+                onClose={() => setShowResetPassword(false)}
+            />
         </div>
     );
 };

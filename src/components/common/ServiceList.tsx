@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { type Service } from '../../types/service';
 import { CardSkeleton } from '../dashboard-admin/Skeleton';
-import Modal from './Modal';
+import ConfirmationModal from './ConfirmationModal';
 
 interface ServiceListProps {
   services: Service[];
@@ -258,25 +258,18 @@ const ServiceList: React.FC<ServiceListProps> = ({ services, onEdit, onDelete, i
       </div>
 
       {/* Delete Confirmation */}
-      {deleteConfirm && (
-        <Modal
-          onClose={handleDeleteCancel}
-          title="Confirm Delete"
-          size="sm"
-          footer={(
-            <>
-              <button type="button" className="btn btn-secondary" onClick={handleDeleteCancel}>
-                Cancel
-              </button>
-              <button type="button" className="btn btn-danger" onClick={handleDeleteConfirm}>
-                Delete Service
-              </button>
-            </>
-          )}
-        >
-          <p className="mb-0">Are you sure you want to delete this service? This action cannot be undone.</p>
-        </Modal>
-      )}
+      <ConfirmationModal
+        isOpen={!!deleteConfirm}
+        title="Delete Service"
+        heading="Permanent Deletion"
+        description="This service and its images will be removed from your listings and can no longer be found by travellers."
+        icon="error"
+        actionColor="danger"
+        actionLabel="Delete Service"
+        dangerZone
+        onConfirm={handleDeleteConfirm}
+        onCancel={handleDeleteCancel}
+      />
     </div>
   );
 };

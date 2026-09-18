@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { type Subscription } from '../../../services/subscriptionService';
 import Modal from '../../common/Modal';
+import { useConfirm } from '../../../contexts/ConfirmContext';
 
 interface EditSubscriptionModalProps {
   subscription: Subscription;
@@ -22,9 +23,22 @@ const EditSubscriptionModal: React.FC<EditSubscriptionModalProps> = ({
     categoryLimit: subscription.categoryLimit ?? 1
   });
   const [loading, setLoading] = useState(false);
+  const confirm = useConfirm();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const ok = await confirm({
+      title: 'Update Plan',
+      subtitle: subscription?.name,
+      heading: 'Save Plan Changes',
+      description: 'Existing subscribers keep the price they already paid — their payments and invoices are historical records and are not re-priced.',
+      icon: 'warning',
+      actionColor: 'primary',
+      actionLabel: 'Update Plan',
+    });
+    if (!ok) return;
+
     setLoading(true);
 
     try {

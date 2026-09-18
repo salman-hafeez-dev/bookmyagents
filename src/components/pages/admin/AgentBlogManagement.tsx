@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useConfirm } from '../../../contexts/ConfirmContext';
 import { useAuth } from '../../../contexts/AuthContext';
 import { blogService } from '../../../services/blogService';
 import { type Blog, type BlogFilters, type BlogStats } from '../../../types/blog';
@@ -11,6 +12,8 @@ import { useGetAgentBlogsQuery } from '../../../redux/api/dashboardApi';
 type ActiveView = 'list' | 'detail' | 'create' | 'edit';
 
 const AgentBlogManagement: React.FC = () => {
+    // Shadows window.confirm with the styled dialog.
+    const confirm = useConfirm();
     const { user } = useAuth();
     const [activeView, setActiveView] = useState<ActiveView>('list');
     const [selectedBlog, setSelectedBlog] = useState<Blog | null>(null);
@@ -40,7 +43,15 @@ const AgentBlogManagement: React.FC = () => {
         : { total: 0, page: 1, limit: 10, totalPages: 0 };
 
     const handleDeleteBlog = async (blogId: string) => {
-        if (!window.confirm('Are you sure you want to delete this blog? This action cannot be undone.')) {
+        if (!await confirm({
+                                                title: 'Delete Blog',
+                                                heading: 'Permanent Deletion',
+                                                description: 'This blog post will be permanently removed and can no longer be viewed by anyone.',
+                                                icon: 'error',
+                                                actionColor: 'danger',
+                                                actionLabel: 'Delete Blog',
+                                                dangerZone: true,
+                                            })) {
             return;
         }
 

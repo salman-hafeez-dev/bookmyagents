@@ -5,7 +5,7 @@ import { showToast } from '../../../utils/toast';
 import { type AdminAgentDetail } from '../../../types/agentProfile';
 import { formatFileSize } from '../../../utils/formatFileSize';
 import DocumentViewerModal from '../../common/DocumentViewerModal';
-import Modal from '../../common/Modal';
+import ConfirmationModal from '../../common/ConfirmationModal';
 
 interface AgentReviewDetailProps {
   agentId: string;
@@ -263,75 +263,60 @@ const AgentReviewDetail: React.FC<AgentReviewDetailProps> = ({ agentId, onBack, 
         </div>
       </div>
 
-      {mode !== 'none' && (
-        <Modal
-          onClose={closeModal}
-          title={mode === 'approve' ? 'Approve this agent?' : 'Request changes'}
-          size="md"
-          busy={acting}
-          footer={(
-            <>
-              <button type="button" className="btn btn-outline-secondary" onClick={closeModal} disabled={acting}>
-                Cancel
-              </button>
-              <button
-                type="button"
-                className={`btn ${mode === 'approve' ? 'btn-success' : 'btn-danger'}`}
-                onClick={mode === 'approve' ? handleApprove : handleReject}
-                disabled={acting || (mode === 'reject' && !rejectionReason.trim())}
-              >
-                {acting ? 'Saving…' : mode === 'approve' ? 'Approve agent' : 'Send back to agent'}
-              </button>
-            </>
-          )}
-        >
-          {mode === 'approve' ? (
-            <p>
-              <strong>{basicInfo.companyName}</strong> becomes publicly visible straight away, and the
-              documents attached to this profile are marked approved.
-            </p>
-          ) : (
-            <p>The agent sees your reason, can edit their profile, and can submit again.</p>
-          )}
+      <ConfirmationModal
+        isOpen={mode !== 'none'}
+        title={mode === 'approve' ? 'Approve Agent' : 'Request Changes'}
+        subtitle={basicInfo.companyName}
+        heading={mode === 'approve' ? 'Publish This Profile' : 'Send Back To The Agent'}
+        description={mode === 'approve'
+          ? `${basicInfo.companyName} becomes publicly visible straight away, and the documents attached to this profile are marked approved.`
+          : 'The agent sees your reason, can edit their profile, and can submit again.'}
+        icon={mode === 'approve' ? 'success' : 'warning'}
+        actionColor={mode === 'approve' ? 'success' : 'danger'}
+        actionLabel={mode === 'approve' ? 'Approve Agent' : 'Send Back To Agent'}
+        size="md"
+        loading={acting}
+        confirmDisabled={mode === 'reject' && !rejectionReason.trim()}
+        onConfirm={mode === 'approve' ? handleApprove : handleReject}
+        onCancel={closeModal}
+      >
+        {mode === 'reject' && (
+          <>
+            <div className="mb-20">
+              <label htmlFor="rejection-reason" className="form-label fw-semibold">
+                Reason<span className="text-danger ms-1">*</span>
+              </label>
+              <input
+                id="rejection-reason" type="text" className="form-control"
+                value={rejectionReason}
+                onChange={(event) => setRejectionReason(event.target.value)}
+                placeholder="e.g. Business licence is unreadable"
+              />
+            </div>
+            <div className="mb-20">
+              <label htmlFor="rejection-details" className="form-label fw-semibold">Details</label>
+              <textarea
+                id="rejection-details" className="form-control" rows={3}
+                value={rejectionReasonDetails}
+                onChange={(event) => setRejectionReasonDetails(event.target.value)}
+                placeholder="Explain exactly what the agent needs to change."
+              />
+            </div>
+          </>
+        )}
 
-          {mode === 'reject' && (
-            <>
-              <div className="mb-20">
-                <label htmlFor="rejection-reason" className="form-label fw-semibold">
-                  Reason<span className="text-danger ms-1">*</span>
-                </label>
-                <input
-                  id="rejection-reason" type="text" className="form-control"
-                  value={rejectionReason}
-                  onChange={(event) => setRejectionReason(event.target.value)}
-                  placeholder="e.g. Business licence is unreadable"
-                />
-              </div>
-              <div className="mb-20">
-                <label htmlFor="rejection-details" className="form-label fw-semibold">Details</label>
-                <textarea
-                  id="rejection-details" className="form-control" rows={3}
-                  value={rejectionReasonDetails}
-                  onChange={(event) => setRejectionReasonDetails(event.target.value)}
-                  placeholder="Explain exactly what the agent needs to change."
-                />
-              </div>
-            </>
-          )}
-
-          <div className="mb-0">
-            <label htmlFor="admin-notes" className="form-label fw-semibold">
-              Note to the agent <span className="text-muted fw-normal">(optional)</span>
-            </label>
-            <textarea
-              id="admin-notes" className="form-control" rows={3}
-              value={adminNotes}
-              onChange={(event) => setAdminNotes(event.target.value)}
-              placeholder="Only this agent sees this — it is never shown publicly."
-            />
-          </div>
-        </Modal>
-      )}
+        <div className="mb-0">
+          <label htmlFor="admin-notes" className="form-label fw-semibold">
+            Note to the agent <span className="text-muted fw-normal">(optional)</span>
+          </label>
+          <textarea
+            id="admin-notes" className="form-control" rows={3}
+            value={adminNotes}
+            onChange={(event) => setAdminNotes(event.target.value)}
+            placeholder="Only this agent sees this — it is never shown publicly."
+          />
+        </div>
+      </ConfirmationModal>
 
       {viewerIndex !== null && (
         <DocumentViewerModal
