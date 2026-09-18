@@ -1,15 +1,11 @@
 import About from "./About"
 import Banner from "./Banner"
-// import Blog from "./Blog"
-// import Choose from "./Choose"
-// import CtaThree from "./Cta"
-// import CtaTwo from "./CtaTwo"
 import Location from "./Location"
-// import Testimonial from "./Testimonial"
 import HeaderThree from "../../../layouts/headers/HeaderThree"
-import BannerFormThree from "../../common/banner-form/BannerFormThree"
 import FooterThree from "../../../layouts/footers/FooterThree"
-import Listing from "./Listing";
+import SearchBar from "../../search/SearchBar"
+import CategoryCards from "../../search/CategoryCards"
+import FeaturedPackages from "./FeaturedPackages"
 
 const HomeThree = () => {
    return (
@@ -17,16 +13,14 @@ const HomeThree = () => {
          <HeaderThree />
          <main>
             <Banner />
-            <BannerFormThree />
+            {/* The plan's homepage question — "what travel service are you
+                looking for?" — answered by one search bar and the five
+                categories, rather than the template's hotel booking widget. */}
+            <SearchBar className="tg-booking-form-space pb-60" />
+            <CategoryCards />
             <About />
-            <Listing />
-            {/* <Choose /> */}
-            {/* <CtaThree /> */}
+            <FeaturedPackages />
             <Location />
-            {/* <CtaTwo /> */}
-            {/* <Testimonial /> */}
-            {/* <Blog /> */}
-            {/* <Cta /> */}
          </main>
          <FooterThree />
       </>

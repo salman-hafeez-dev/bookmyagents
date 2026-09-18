@@ -28,13 +28,13 @@ const menu_data: MenuItem[] = [
     },
     {
         id: 2,
-        title: "Features",
-        link: "/tour-grid-2",
+        title: "Search",
+        link: "/search",
         has_dropdown: false,
         // sub_menus: [
         //     { link: "/hotel-grid", title: "Hotel Grid" },
-        //     { link: "/tour-grid-2", title: "Tour Grid One" },
-        //     { link: "/tour-grid-2", title: "Tour Grid Two" },
+        //     { link: "/search", title: "Tour Grid One" },
+        //     { link: "/search", title: "Tour Grid Two" },
         //     { link: "/map-listing", title: "Hotel Listing" },
         //     { link: "/tour-details", title: "Tour Details One" },
         //     { link: "/tour-details-2", title: "Tour Details Two" },

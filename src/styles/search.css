@@ -1,0 +1,182 @@
+/* Marketplace search — search bar, mode switch and results page.
+ *
+ * Bootstrap's own .btn-primary is blue (#0d6efd) while the site's brand is
+ * --tg-theme-primary (#560ce3), and the template repaints .btn-primary with a
+ * purple gradient. Anything here that reads as "selected" uses that same
+ * gradient so the mode switch and the Search button are visibly one control
+ * set rather than two different blues.
+ */
+
+:root {
+  --bma-primary: var(--tg-theme-primary, #560ce3);
+  --bma-primary-dark: #4a0bc7;
+  --bma-gradient: linear-gradient(135deg, var(--bma-primary) 0%, var(--bma-primary-dark) 100%);
+}
+
+/* ---- Mode switch (Packages | Agents) ---------------------------------- */
+
+.bma-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  background: #f1eefb;
+  border-radius: 999px;
+}
+
+.bma-switch-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 22px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #5b5675;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color .2s ease, color .2s ease, box-shadow .2s ease;
+}
+
+.bma-switch-btn:hover:not(.is-active) {
+  color: var(--bma-primary);
+  background: rgba(86, 12, 227, .07);
+}
+
+.bma-switch-btn:focus-visible {
+  outline: 2px solid var(--bma-primary);
+  outline-offset: 2px;
+}
+
+.bma-switch-btn.is-active {
+  background: var(--bma-gradient);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(86, 12, 227, .25);
+}
+
+.bma-switch-btn i {
+  font-size: 13px;
+}
+
+/* ---- Search card ------------------------------------------------------ */
+
+.bma-search-card {
+  padding: 22px 24px;
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 10px 30px rgba(24, 16, 54, .08);
+}
+
+.bma-search-card .form-label {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .02em;
+  text-transform: uppercase;
+  color: #8d88a3;
+}
+
+.bma-search-card .form-control,
+.bma-search-card .form-select {
+  height: 48px;
+  border-color: #e6e3f0;
+  border-radius: 8px;
+}
+
+.bma-search-card .form-control:focus,
+.bma-search-card .form-select:focus {
+  border-color: var(--bma-primary);
+  box-shadow: 0 0 0 .2rem rgba(86, 12, 227, .12);
+}
+
+.bma-search-submit {
+  height: 48px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--bma-gradient);
+  color: #fff;
+  font-weight: 600;
+  transition: box-shadow .2s ease, transform .2s ease;
+}
+
+.bma-search-submit:hover {
+  color: #fff;
+  box-shadow: 0 6px 18px rgba(86, 12, 227, .3);
+  transform: translateY(-1px);
+}
+
+/* ---- Results page ----------------------------------------------------- */
+
+/* .tg-footer-area carries margin-top:-98px so it can tuck under the
+ * homepage's last full-bleed section. A plain content page has nothing to
+ * tuck under, so the footer climbs over the filter sidebar. Cancelling it
+ * here keeps the fix with the pages that need it, rather than editing a
+ * shared template stylesheet every other page depends on. */
+.bma-page {
+  margin-bottom: 98px;
+}
+
+.bma-filters {
+  position: sticky;
+  top: 24px;
+  border: 1px solid #e9e6f2;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.bma-result-card {
+  border: 1px solid #e9e6f2;
+  border-radius: 12px;
+  background: #fff;
+  overflow: hidden;
+  transition: box-shadow .2s ease, transform .2s ease;
+}
+
+.bma-result-card:hover {
+  box-shadow: 0 10px 26px rgba(24, 16, 54, .1);
+  transform: translateY(-2px);
+}
+
+.bma-result-card .tg-listing-card-title a {
+  color: #1d1734;
+  text-decoration: none;
+}
+
+.bma-result-card .tg-listing-card-title a:hover {
+  color: var(--bma-primary);
+}
+
+.bma-price {
+  color: var(--bma-primary);
+  font-weight: 700;
+}
+
+/* Category cards on the homepage */
+.tg-category-card {
+  border-color: #e9e6f2 !important;
+  background: #fff;
+  color: inherit;
+  transition: border-color .2s ease, box-shadow .2s ease, transform .2s ease;
+}
+
+.tg-category-card:hover {
+  border-color: var(--bma-primary) !important;
+  box-shadow: 0 10px 26px rgba(24, 16, 54, .1);
+  transform: translateY(-2px);
+}
+
+.tg-category-card h5 {
+  color: #1d1734;
+}
+
+@media (max-width: 991px) {
+  .bma-filters {
+    position: static;
+  }
+
+  .bma-switch-btn {
+    padding: 9px 16px;
+  }
+}
