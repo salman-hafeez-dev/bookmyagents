@@ -3,6 +3,7 @@ import { agentProfileService, extractApiError } from '../../../../services/agent
 import { showToast } from '../../../../utils/toast';
 import { type AgentProfile } from '../../../../types/agentProfile';
 import { formatFileSize } from '../../../../utils/formatFileSize';
+import { useConfirm } from '../../../../contexts/ConfirmContext';
 import DocumentViewerModal from '../../../common/DocumentViewerModal';
 
 interface StepDocumentsProps {
@@ -38,6 +39,7 @@ const StepDocuments: React.FC<StepDocumentsProps> = ({ profile, locked, onRefres
   // Index into profile.documents of the document open in the viewer.
   const [viewerIndex, setViewerIndex] = useState<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const confirm = useConfirm();
 
   const resetPicker = () => {
     setFile(null);
@@ -89,7 +91,17 @@ const StepDocuments: React.FC<StepDocumentsProps> = ({ profile, locked, onRefres
   };
 
   const handleDelete = async (documentId: string, name: string) => {
-    if (!window.confirm(`Delete "${name}"? This permanently removes the uploaded file.`)) return;
+    const ok = await confirm({
+      title: 'Delete Document',
+      subtitle: name,
+      heading: 'Remove This Document',
+      description: 'The uploaded file will be permanently deleted. You can upload a replacement afterwards.',
+      icon: 'error',
+      actionColor: 'danger',
+      actionLabel: 'Delete Document',
+      dangerZone: true,
+    });
+    if (!ok) return;
     setDeletingId(documentId);
     try {
       await agentProfileService.deleteDocument(documentId);

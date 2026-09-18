@@ -91,8 +91,13 @@ export const userService = {
     }
   },
 
-  // Update user password
-  updatePassword: async (id: string, passwordData: { currentPassword: string; newPassword: string }): Promise<void> => {
+  // Admin: set a new password for another account. No current password — that
+  // is what makes it an admin reset. The API refuses to target your own
+  // account; use profileService.updatePassword for that.
+  changePassword: async (
+    id: string,
+    passwordData: { newPassword: string; confirmPassword: string }
+  ): Promise<void> => {
     try {
       await api.put(`/users/${id}/password`, passwordData);
     } catch (error) {

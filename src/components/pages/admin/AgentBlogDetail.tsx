@@ -1,4 +1,5 @@
 import React from 'react';
+import { useConfirm } from '../../../contexts/ConfirmContext';
 import { type Blog } from '../../../types/blog';
 
 interface AgentBlogDetailProps {
@@ -14,6 +15,8 @@ const AgentBlogDetail: React.FC<AgentBlogDetailProps> = ({
     onEdit,
     onDelete
 }) => {
+    // Shadows window.confirm with the styled dialog.
+    const confirm = useConfirm();
     const getStatusBadge = (status: string) => {
         const statusClasses = {
             pending: 'badge-warning',
@@ -90,8 +93,16 @@ const AgentBlogDetail: React.FC<AgentBlogDetailProps> = ({
                                 {canDelete(blog) && onDelete && (
                                     <button
                                         className="btn btn-outline-danger"
-                                        onClick={() => {
-                                            if (window.confirm('Are you sure you want to delete this blog? This action cannot be undone.')) {
+                                        onClick={async () => {
+                                            if (await confirm({
+                                                title: 'Delete Blog',
+                                                heading: 'Permanent Deletion',
+                                                description: 'This blog post will be permanently removed and can no longer be viewed by anyone.',
+                                                icon: 'error',
+                                                actionColor: 'danger',
+                                                actionLabel: 'Delete Blog',
+                                                dangerZone: true,
+                                            })) {
                                                 onDelete(blog._id);
                                             }
                                         }}
@@ -242,8 +253,16 @@ const AgentBlogDetail: React.FC<AgentBlogDetailProps> = ({
                                                 {canDelete(blog) && onDelete && (
                                                     <button
                                                         className="btn btn-danger"
-                                                        onClick={() => {
-                                                            if (window.confirm('Are you sure you want to delete this blog? This action cannot be undone.')) {
+                                                        onClick={async () => {
+                                                            if (await confirm({
+                                                title: 'Delete Blog',
+                                                heading: 'Permanent Deletion',
+                                                description: 'This blog post will be permanently removed and can no longer be viewed by anyone.',
+                                                icon: 'error',
+                                                actionColor: 'danger',
+                                                actionLabel: 'Delete Blog',
+                                                dangerZone: true,
+                                            })) {
                                                                 onDelete(blog._id);
                                                             }
                                                         }}

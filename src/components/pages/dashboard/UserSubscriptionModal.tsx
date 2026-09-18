@@ -4,6 +4,7 @@ import { userService } from '../../../services/userService';
 import { type User } from '../../../services/authService';
 import { CardSkeleton } from '../../dashboard-admin/Skeleton';
 import Modal from '../../common/Modal';
+import { useConfirm } from '../../../contexts/ConfirmContext';
 
 interface UserSubscriptionModalProps {
   user: User | null;
@@ -23,6 +24,7 @@ const UserSubscriptionModal: React.FC<UserSubscriptionModalProps> = ({
   const [loading, setLoading] = useState(false);
   const [assigning, setAssigning] = useState(false);
   const [cancelling, setCancelling] = useState(false);
+  const confirm = useConfirm();
   const [error, setError] = useState<string | null>(null);
   const [selectedSubscriptionId, setSelectedSubscriptionId] = useState<string>('');
   const [showCancelModal, setShowCancelModal] = useState(false);
@@ -77,6 +79,17 @@ const UserSubscriptionModal: React.FC<UserSubscriptionModalProps> = ({
   };
 
   const handleAssignSubscription = async () => {
+    const ok = await confirm({
+      title: 'Assign Subscription',
+      subtitle: user?.fullName,
+      heading: 'Activate This Plan',
+      description: 'The plan becomes active immediately and replaces any plan this agent currently holds.',
+      icon: 'info',
+      actionColor: 'primary',
+      actionLabel: 'Assign Plan',
+    });
+    if (!ok) return;
+
     if (!selectedSubscriptionId || !user) return;
 
     setAssigning(true);

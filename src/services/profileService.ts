@@ -93,6 +93,19 @@ export const profileService = {
         }
     },
 
+    // Change your own password. Verifies the current one server-side, and
+    // invalidates every token this account holds — the caller must sign out.
+    updatePassword: async (data: {
+        currentPassword: string;
+        newPassword: string;
+        confirmPassword: string;
+    }): Promise<{ success: boolean; message: string }> => {
+        // No try/catch: an axios rejection propagates to the caller either way,
+        // and the wrapper the sibling methods use is a lint error.
+        const response = await api.put('/profile/password', data);
+        return response.data;
+    },
+
     // Upload avatar
     uploadAvatar: async (file: File): Promise<string> => {
         try {

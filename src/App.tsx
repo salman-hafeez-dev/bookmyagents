@@ -3,6 +3,7 @@ import AppNavigation from "./navigation/Navigation"
 import { Provider } from 'react-redux'
 import store from "./redux/store"
 import { AuthProvider } from "./contexts/AuthContext"
+import { ConfirmProvider } from "./contexts/ConfirmContext"
 import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 
@@ -12,6 +13,7 @@ function App() {
     <>
       <Provider store={store}>
         <AuthProvider>
+          <ConfirmProvider>
           <HelmetProvider>
             <AppNavigation />
             <ToastContainer
@@ -27,6 +29,7 @@ function App() {
               theme="colored"
             />
           </HelmetProvider>
+          </ConfirmProvider>
         </AuthProvider>
       </Provider>
     </>

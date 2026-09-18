@@ -6,6 +6,7 @@ import { type Service, type CreateServiceData } from '../../types/service';
 import { serviceService } from '../../services/serviceService';
 import { showToast, getErrorMessage } from '../../utils/toast';
 import { trackUploadProgress } from '../../utils/uploadHandler';
+import { useConfirm } from '../../contexts/ConfirmContext';
 
 interface ServiceFormProps {
   service?: Service;
@@ -79,6 +80,7 @@ const ServiceForm: React.FC<ServiceFormProps> = ({ service, onSubmit, onCancel, 
   const [newPreviews, setNewPreviews] = useState<string[]>([]);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
+  const confirm = useConfirm();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const editorRef = useRef<HTMLDivElement>(null);
 
@@ -185,6 +187,26 @@ const ServiceForm: React.FC<ServiceFormProps> = ({ service, onSubmit, onCancel, 
   };
 
   const onFormSubmit = async (data: any) => {
+    const ok = await confirm(service
+      ? {
+        title: 'Update Service',
+        subtitle: service.title,
+        heading: 'Save These Changes',
+        description: 'Your updated service details will be visible to travellers straight away.',
+        icon: 'info',
+        actionColor: 'primary',
+        actionLabel: 'Update Service',
+      }
+      : {
+        title: 'Create Service',
+        heading: 'Publish This Service',
+        description: 'The service will be created and listed under your agency.',
+        icon: 'success',
+        actionColor: 'success',
+        actionLabel: 'Create Service',
+      });
+    if (!ok) return;
+
     try {
       const files = Array.from(data.pictures || []).filter(f => f instanceof File) as File[];
       const pictureUrls: string[] = [];

@@ -11,6 +11,10 @@ import CategoryManagement from '../admin/CategoryManagement';
 import AgentApprovalManagement from '../admin/AgentApprovalManagement';
 import PaymentsManagement from '../admin/PaymentsManagement';
 import PaymentAccountSettings from '../admin/PaymentAccountSettings';
+import ConfirmationModal from '../../common/ConfirmationModal';
+import AdminChangePasswordModal from '../../modals/AdminChangePasswordModal';
+import { showToast } from '../../../utils/toast';
+import { extractApiError } from '../../../services/agentProfileService';
 import SubscriptionRequestsPanel from '../admin/SubscriptionRequestsPanel';
 import AdminDashboardShell from '../../dashboard-admin/AdminDashboardShell';
 import { type AdminNavItem } from '../../dashboard-admin/AdminSidebar';
@@ -38,6 +42,11 @@ const DashboardArea: React.FC = () => {
   const [debouncedUserFilters, setDebouncedUserFilters] = useState<UserFilters>(userFilters);
   const [roleFilter, setRoleFilter] = useState<UserRoleFilter>('all');
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  // Destructive / status actions are confirmed before they run.
+  const [statusTarget, setStatusTarget] = useState<User | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<User | null>(null);
+  const [passwordTarget, setPasswordTarget] = useState<User | null>(null);
+  const [actionLoading, setActionLoading] = useState(false);
   const [showUserSubscriptionModal, setShowUserSubscriptionModal] = useState(false);
 
   // Subscription Module State
@@ -70,13 +79,38 @@ const DashboardArea: React.FC = () => {
   } = useGetSubscriptionsQuery(undefined, { skip: activeModule !== 'subscriptions' || user?.role !== 'admin' });
   const subscriptions = subscriptionsResponse?.data || [];
 
-  const handleUserStatusToggle = async (userId: string, currentStatus: boolean) => {
+  // Confirmed via the modal rather than firing straight off the toggle, so a
+  // mis-click can't take an agent offline.
+  const handleUserStatusToggle = async () => {
+    if (!statusTarget) return;
+    const nextStatus = !statusTarget.isActive;
+    setActionLoading(true);
     try {
-      const newStatus = !currentStatus;
-      await userService.updateUser(userId, { isActive: newStatus });
+      await userService.updateUser(statusTarget._id, { isActive: nextStatus });
+      showToast.success(`${statusTarget.fullName} is now ${nextStatus ? 'active' : 'inactive'}.`);
+      setStatusTarget(null);
       refetchUsers(); // Cached list is now stale — force a fresh fetch
     } catch (error) {
-      console.error('Error updating user status:', error);
+      showToast.error(extractApiError(error).message);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleUserDelete = async () => {
+    if (!deleteTarget) return;
+    setActionLoading(true);
+    try {
+      await userService.deleteUser(deleteTarget._id);
+      showToast.success(`${deleteTarget.fullName} was deleted.`);
+      setDeleteTarget(null);
+      refetchUsers();
+    } catch (error) {
+      // The API refuses to delete admins, your own account, or anyone with
+      // payment history — surface its reason rather than a generic failure.
+      showToast.error(extractApiError(error).message);
+    } finally {
+      setActionLoading(false);
     }
   };
 
@@ -366,7 +400,7 @@ const DashboardArea: React.FC = () => {
                               <div className="btn-group" role="group">
                                 {userItem.role !== 'admin' && <button
                                   className={`btn btn-sm ${userItem.isActive ? 'btn-warning' : 'btn-success'}`}
-                                  onClick={() => handleUserStatusToggle(userItem._id, userItem.isActive || false)}
+                                  onClick={() => setStatusTarget(userItem)}
                                   title={userItem.isActive ? 'Deactivate User' : 'Activate User'}
                                 >
                                   <i className={`fas ${userItem.isActive ? 'fa-user-times' : 'fa-user-plus'}`}></i>
@@ -380,6 +414,30 @@ const DashboardArea: React.FC = () => {
                                     <i className="fas fa-cog"></i>
                                   </button>
                                 )}
+                                {userItem._id !== user?._id && (
+                                  <button
+                                    className="btn btn-sm btn-secondary"
+                                    onClick={() => setPasswordTarget(userItem)}
+                                    title="Change Password"
+                                  >
+                                    <i className="fas fa-key"></i>
+                                  </button>
+                                )}
+                                {/* Administrators are never deletable — the API
+                                    enforces this too, so a crafted request
+                                    can't get past a disabled button. */}
+                                <button
+                                  className="btn btn-sm btn-danger"
+                                  disabled={userItem.role === 'admin'}
+                                  onClick={() => setDeleteTarget(userItem)}
+                                  title={
+                                    userItem.role === 'admin'
+                                      ? 'System administrators cannot be deleted'
+                                      : 'Delete User'
+                                  }
+                                >
+                                  <i className="fas fa-trash"></i>
+                                </button>
                               </div>
                             </td>
                           </tr>
@@ -553,6 +611,46 @@ const DashboardArea: React.FC = () => {
           onSubscriptionAssigned={handleSubscriptionAssigned}
         />
       )}
+      {/* Status change — different wording and colour per direction */}
+      <ConfirmationModal
+        isOpen={!!statusTarget}
+        title={statusTarget?.isActive ? 'Deactivate User' : 'Activate User'}
+        subtitle={statusTarget?.fullName}
+        heading={statusTarget?.isActive ? 'Account Will Be Inactive' : 'Account Will Be Active'}
+        description={statusTarget?.isActive
+          ? 'This account will no longer be visible to users. Existing bookings continue, but no new bookings can be made and users cannot make contact.'
+          : 'This account will be visible to users again and able to receive new bookings.'}
+        icon={statusTarget?.isActive ? 'warning' : 'success'}
+        actionColor={statusTarget?.isActive ? 'danger' : 'success'}
+        actionLabel={statusTarget?.isActive ? 'Deactivate' : 'Activate'}
+        loading={actionLoading}
+        onConfirm={handleUserStatusToggle}
+        onCancel={() => setStatusTarget(null)}
+      />
+
+      {/* Deletion */}
+      <ConfirmationModal
+        isOpen={!!deleteTarget}
+        title="Delete User"
+        subtitle={deleteTarget?.fullName}
+        heading="Permanent Deletion"
+        description="This account and its profile, subscription and plan requests will be permanently removed. Accounts with payment history cannot be deleted — deactivate those instead."
+        icon="error"
+        actionColor="danger"
+        actionLabel="Delete User"
+        dangerZone
+        loading={actionLoading}
+        onConfirm={handleUserDelete}
+        onCancel={() => setDeleteTarget(null)}
+      />
+
+      {/* Admin-initiated password change */}
+      <AdminChangePasswordModal
+        isOpen={!!passwordTarget}
+        agent={passwordTarget}
+        onSuccess={() => { setPasswordTarget(null); refetchUsers(); }}
+        onClose={() => setPasswordTarget(null)}
+      />
     </AdminDashboardShell>
   );
 };
