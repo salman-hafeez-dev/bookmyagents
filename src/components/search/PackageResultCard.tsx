@@ -15,7 +15,7 @@ const formatDeparture = (result: PackageResult) => {
 };
 
 const PackageResultCard: React.FC<{ result: PackageResult }> = ({ result }) => (
-  <div className="tg-listing-card-item mb-25 h-100 border rounded overflow-hidden bg-white">
+  <div className="bma-result-card tg-listing-card-item mb-25 h-100">
     <div className="tg-listing-card-thumb p-relative">
       {result.images[0] ? (
         <img
@@ -83,7 +83,7 @@ const PackageResultCard: React.FC<{ result: PackageResult }> = ({ result }) => (
 
       <div className="d-flex justify-content-between align-items-center">
         <div>
-          <div className="fw-bold text-primary">{formatPrice(result)}</div>
+          <div className="bma-price">{formatPrice(result)}</div>
           <div className="small text-muted">
             {result.priceType === 'per_group' ? 'per group' : 'per person'}
           </div>

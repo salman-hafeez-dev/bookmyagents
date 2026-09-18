@@ -67,7 +67,7 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({ params, type, onChange })
   );
 
   return (
-    <aside className="border rounded bg-white p-3">
+    <aside className="bma-filters p-3">
       <div className="d-flex justify-content-between align-items-center mb-3">
         <h5 className="mb-0">Filters</h5>
         {hasFilters && (

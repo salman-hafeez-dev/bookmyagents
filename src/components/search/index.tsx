@@ -103,7 +103,7 @@ const SearchResults: React.FC = () => {
     <>
       <HeaderThree />
 
-      <main className="pb-80" style={{ background: '#f7f8fa' }}>
+      <main className="bma-page pb-80" style={{ background: '#f7f8fa' }}>
         {/* HeaderThree sits transparently over the page, so inner pages need a
             band of their own to sit below it — the same job the template's
             breadcrumb image does on other inner pages. */}
@@ -114,7 +114,7 @@ const SearchResults: React.FC = () => {
           <div className="tg-hero-top-shadow"></div>
         </div>
 
-        <SearchBar initial={params} className="pt-40 pb-40" />
+        <SearchBar initial={params} onTypeChange={switchType} className="pt-40 pb-40" />
 
         <div className="container">
           <div className="row">
@@ -124,28 +124,16 @@ const SearchResults: React.FC = () => {
 
             <div className="col-lg-9 col-12">
               <div className="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
-                <div className="btn-group btn-group-sm" role="group" aria-label="Result type">
-                  <button
-                    type="button"
-                    className={`btn ${type === 'packages' ? 'btn-primary' : 'btn-outline-primary'}`}
-                    onClick={() => switchType('packages')}
-                  >
-                    Packages
-                  </button>
-                  <button
-                    type="button"
-                    className={`btn ${type === 'agents' ? 'btn-primary' : 'btn-outline-primary'}`}
-                    onClick={() => switchType('agents')}
-                  >
-                    Agents
-                  </button>
-                </div>
+                <span className="small text-muted">
+                  {isLoading
+                    ? 'Searching…'
+                    : `${total} ${type === 'agents' ? 'agent' : 'package'}${total === 1 ? '' : 's'} found`}
+                </span>
 
                 <div className="d-flex align-items-center gap-2">
-                  <span className="small text-muted">
-                    {isLoading ? 'Searching…' : `${total} result${total === 1 ? '' : 's'}`}
-                  </span>
+                  <label className="small text-muted mb-0" htmlFor="search-sort">Sort by</label>
                   <select
+                    id="search-sort"
                     className="form-select form-select-sm"
                     style={{ width: 'auto' }}
                     value={params.sort || 'recommended'}

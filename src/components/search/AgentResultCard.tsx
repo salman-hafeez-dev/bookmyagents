@@ -6,7 +6,7 @@ const money = (amount: number, currency: string) =>
   `${currency} ${new Intl.NumberFormat('en-PK').format(amount)}`;
 
 const AgentResultCard: React.FC<{ result: AgentResult }> = ({ result }) => (
-  <div className="border rounded bg-white p-3 mb-3">
+  <div className="bma-result-card p-3 mb-3">
     <div className="row g-3">
       <div className="col-md-2 col-3">
         {result.logo ? (
@@ -93,7 +93,7 @@ const AgentResultCard: React.FC<{ result: AgentResult }> = ({ result }) => (
           {typeof result.startingPrice === 'number' && (
             <>
               <div className="small text-muted">Packages from</div>
-              <div className="h5 text-primary mb-1">
+              <div className="h5 bma-price mb-1">
                 {money(result.startingPrice, result.topPackages[0]?.currency || 'PKR')}
               </div>
             </>
