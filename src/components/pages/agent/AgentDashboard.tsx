@@ -8,12 +8,13 @@ import AgentBlogManagement from '../admin/AgentBlogManagement';
 import ActiveSubscriptionPanel from './ActiveSubscriptionPanel';
 import AgentProfileSetup from './profile/AgentProfileSetup';
 import AgentPaymentsPanel from './AgentPaymentsPanel';
+import AgentPackagesPanel from './packages/AgentPackagesPanel';
 import InnerHeader from '../../../layouts/headers/InnerHeader';
 import AdminDashboardShell from '../../dashboard-admin/AdminDashboardShell';
 import { type AdminNavItem } from '../../dashboard-admin/AdminSidebar';
 import { useGetAgentServicesQuery, useGetServiceStatsQuery } from '../../../redux/api/dashboardApi';
 
-type ActiveView = 'list' | 'create' | 'edit' | 'blogs' | 'subscription' | 'profile' | 'payments';
+type ActiveView = 'list' | 'create' | 'edit' | 'packages' | 'blogs' | 'subscription' | 'profile' | 'payments';
 
 const AgentDashboard: React.FC = () => {
   const { user } = useAuth();
@@ -121,6 +122,13 @@ const AgentDashboard: React.FC = () => {
       active: activeView === 'profile',
     },
     {
+      key: 'packages',
+      label: 'My Packages',
+      icon: 'fas fa-suitcase-rolling',
+      onClick: () => setActiveView('packages'),
+      active: activeView === 'packages',
+    },
+    {
       key: 'list',
       label: 'My Services',
       icon: 'fas fa-list',
@@ -171,6 +179,9 @@ const AgentDashboard: React.FC = () => {
 
         {/* Agent Profile — company details, documents and approval status */}
         {activeView === 'profile' && <AgentProfileSetup />}
+
+        {/* Packages — the offers customers actually search and compare */}
+        {activeView === 'packages' && <AgentPackagesPanel />}
 
         {/* Services List View */}
         {activeView === 'list' && (
