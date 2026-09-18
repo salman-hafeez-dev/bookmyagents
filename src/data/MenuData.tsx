@@ -29,11 +29,11 @@ const menu_data: MenuItem[] = [
     {
         id: 2,
         title: "Features",
-        link: "/tour-grid-1",
+        link: "/tour-grid-2",
         has_dropdown: false,
         // sub_menus: [
         //     { link: "/hotel-grid", title: "Hotel Grid" },
-        //     { link: "/tour-grid-1", title: "Tour Grid One" },
+        //     { link: "/tour-grid-2", title: "Tour Grid One" },
         //     { link: "/tour-grid-2", title: "Tour Grid Two" },
         //     { link: "/map-listing", title: "Hotel Listing" },
         //     { link: "/tour-details", title: "Tour Details One" },

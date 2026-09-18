@@ -4,11 +4,8 @@ import { useState, useEffect, useRef } from "react";
 import Offcanvas from "./Menu/Offcanvas";
 import Sidebar from "./Menu/Sidebar";
 import HeaderSearch from "./Menu/HeaderSearch";
-import HeaderCart from "./Menu/HeaderCart";
-import TotalCart from "./Menu/TotalCart";
 import UseSticky from "../../hooks/UseSticky";
 import SearchIcon from "../../svg/SearchIcon";
-import CartIconTwo from "../../svg/CartIconTwo";
 import UserIcon from "../../svg/UserIcon";
 import { useAuth } from "../../contexts/AuthContext";
 
@@ -72,15 +69,6 @@ const InnerHeader = () => {
                               <button onClick={() => setIsSearch(true)} className="search-button search-open-btn">
                                  <SearchIcon />
                               </button>
-                              <div className="tg-header-cart p-relative d-none d-xl-block">
-                                 <button className="cart-button">
-                                    <span>
-                                       <CartIconTwo />
-                                    </span>
-                                    <span className="tg-header-cart-count"><TotalCart /></span>
-                                 </button>
-                                 <HeaderCart />
-                              </div>
                               {isAuthenticated ?
                                  <div className="tg-header-btn ml-10 d-none d-sm-block">
                                     <div className="tg-header-user-menu" ref={userMenuRef}>

@@ -3,11 +3,8 @@ import { Link } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import Offcanvas from "./Menu/Offcanvas";
 import Sidebar from "./Menu/Sidebar";
-import HeaderCart from "./Menu/HeaderCart";
-import TotalCart from "./Menu/TotalCart";
 import UseSticky from "../../hooks/UseSticky";
 import PhoneIcon from "../../svg/PhoneIcon";
-import CartIcon from "../../svg/CartIcon";
 import UserIcon from "../../svg/UserIcon";
 import { useAuth } from "../../contexts/AuthContext";
 
@@ -75,16 +72,6 @@ const HeaderThree = () => {
                                  <span>Call Us:</span>
                                  <Link to="tel:+123595966">+123 5959 66</Link>
                               </div>
-                           </div>
-                           <div className="tg-header-cart p-relative ml-20 pl-20 d-none d-xl-block">
-                              <span className="tg-header-border"></span>
-                              <button className="cart-button">
-                                 <span>
-                                    <CartIcon />
-                                 </span>
-                                 <span className="tg-header-cart-count"><TotalCart /></span>
-                              </button>
-                              <HeaderCart />
                            </div>
                            {isAuthenticated ?
                               <div className="tg-header-btn ml-20 d-none d-sm-block">
