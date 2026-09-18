@@ -17,8 +17,8 @@ interface StatTileProps {
 // panels already using it.
 const StatTile: React.FC<StatTileProps> = ({ label, value, icon, tone = 'primary' }) => (
   <div className="bma-stat">
-    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "10px" }}>
-      <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "10px", width: '100%' }}>
+      <div style={{ display: "flex", alignItems: "center", gap: "10px", width: '100%' }}>
         <span className={`bma-stat-icon bma-stat-icon--${tone}`}>
           <i className={icon} aria-hidden="true"></i>
         </span>

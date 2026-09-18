@@ -390,14 +390,24 @@
 }
 
 @keyframes bma-shimmer {
-  from { background-position: 100% 50%; }
-  to { background-position: 0 50%; }
+  from {
+    background-position: 100% 50%;
+  }
+
+  to {
+    background-position: 0 50%;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .bma-skeleton { animation: none; }
+  .bma-skeleton {
+    animation: none;
+  }
+
   .bma-action:hover,
-  .bma-result-card:hover { transform: none; }
+  .bma-result-card:hover {
+    transform: none;
+  }
 }
 
 .bma-empty {
@@ -414,14 +424,24 @@
 /* ---- Responsive -------------------------------------------------------- */
 
 @media (max-width: 991px) {
-  .bma-rail { position: static; }
+  .bma-rail {
+    position: static;
+  }
+
   .bma-gallery-main,
-  .bma-gallery-empty { height: 300px; }
-  .bma-card-pad { padding: 20px; }
+  .bma-gallery-empty {
+    height: 300px;
+  }
+
+  .bma-card-pad {
+    padding: 20px;
+  }
 }
 
 @media (max-width: 767px) {
-  .bma-mobile-bar { display: flex; }
+  .bma-mobile-bar {
+    display: flex;
+  }
 
   /* The logo and the name compete for a 375px row, which leaves the title
    * wrapping awkwardly and the chips stacked one per line. Stacking them
@@ -446,14 +466,36 @@
   }
 
   /* Clear the fixed bar so it never covers the last section. */
-  .bma-detail--has-bar { padding-bottom: 92px; }
+  .bma-detail--has-bar {
+    padding-bottom: 92px;
+  }
+
   .bma-gallery-main,
-  .bma-gallery-empty { height: 220px; }
-  .bma-agent-cover { height: 150px; }
-  .bma-agent-logo { width: 88px; height: 88px; margin-top: -44px; }
-  .bma-price-lg { font-size: 26px; }
-  .bma-agent-head { padding: 0 16px 20px; }
-  .bma-card-pad { padding: 16px; }
+  .bma-gallery-empty {
+    height: 220px;
+  }
+
+  .bma-agent-cover {
+    height: 150px;
+  }
+
+  .bma-agent-logo {
+    width: 88px;
+    height: 88px;
+    margin-top: -44px;
+  }
+
+  .bma-price-lg {
+    font-size: 26px;
+  }
+
+  .bma-agent-head {
+    padding: 0 16px 20px;
+  }
+
+  .bma-card-pad {
+    padding: 16px;
+  }
 }
 
 /* ---- Request a quote --------------------------------------------------- */
@@ -496,18 +538,33 @@
 }
 
 @keyframes bma-fade {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes bma-rise {
-  from { opacity: 0; transform: translateY(12px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
+
   .bma-modal-backdrop,
-  .bma-modal { animation: none; }
+  .bma-modal {
+    animation: none;
+  }
 }
 
 .bma-modal-head {
@@ -583,10 +640,24 @@
 }
 
 @media (max-width: 575px) {
-  .bma-modal-backdrop { padding: 0; align-items: flex-end; }
-  .bma-modal { max-width: none; max-height: 92vh; border-radius: 16px 16px 0 0; }
-  .bma-modal-foot { flex-direction: column-reverse; }
-  .bma-modal-foot > * { width: 100%; }
+  .bma-modal-backdrop {
+    padding: 0;
+    align-items: flex-end;
+  }
+
+  .bma-modal {
+    max-width: none;
+    max-height: 92vh;
+    border-radius: 16px 16px 0 0;
+  }
+
+  .bma-modal-foot {
+    flex-direction: column-reverse;
+  }
+
+  .bma-modal-foot>* {
+    width: 100%;
+  }
 }
 
 /* ---- Agent lead inbox -------------------------------------------------- */
@@ -598,7 +669,9 @@
   scrollbar-width: none;
 }
 
-.bma-lead-tabs::-webkit-scrollbar { display: none; }
+.bma-lead-tabs::-webkit-scrollbar {
+  display: none;
+}
 
 .bma-lead-tab {
   display: inline-flex;
@@ -638,7 +711,7 @@
   list-style: none;
 }
 
-.bma-lead-list li + li {
+.bma-lead-list li+li {
   border-top: 1px solid var(--bma-line);
 }
 
@@ -655,7 +728,9 @@
   transition: background-color .15s ease;
 }
 
-.bma-lead-row:hover { background: #faf9fd; }
+.bma-lead-row:hover {
+  background: #faf9fd;
+}
 
 .bma-lead-row:focus-visible {
   outline: 2px solid var(--bma-primary);
@@ -673,10 +748,25 @@
   font-size: 15px;
 }
 
-.bma-lead-icon--quote_request { background: #f1eefb; color: var(--bma-primary); }
-.bma-lead-icon--inquiry { background: #e8f1ff; color: #1b62d4; }
-.bma-lead-icon--whatsapp_click { background: #e6f9ed; color: #1a9e50; }
-.bma-lead-icon--phone_click { background: #fdf0e6; color: #c26414; }
+.bma-lead-icon--quote_request {
+  background: #f1eefb;
+  color: var(--bma-primary);
+}
+
+.bma-lead-icon--inquiry {
+  background: #e8f1ff;
+  color: #1b62d4;
+}
+
+.bma-lead-icon--whatsapp_click {
+  background: #e6f9ed;
+  color: #1a9e50;
+}
+
+.bma-lead-icon--phone_click {
+  background: #fdf0e6;
+  color: #c26414;
+}
 
 .bma-lead-main {
   display: flex;
@@ -738,12 +828,35 @@
   white-space: nowrap;
 }
 
-.bma-lead-badge--new { background: #f1eefb; color: var(--bma-primary); }
-.bma-lead-badge--contacted { background: #e8f1ff; color: #1b62d4; }
-.bma-lead-badge--quote { background: #fdf0e6; color: #b3560f; }
-.bma-lead-badge--followup { background: #fff6da; color: #8a6400; }
-.bma-lead-badge--converted { background: #e8f7ee; color: #12794a; }
-.bma-lead-badge--closed { background: #f1f0f4; color: #6f6a85; }
+.bma-lead-badge--new {
+  background: #f1eefb;
+  color: var(--bma-primary);
+}
+
+.bma-lead-badge--contacted {
+  background: #e8f1ff;
+  color: #1b62d4;
+}
+
+.bma-lead-badge--quote {
+  background: #fdf0e6;
+  color: #b3560f;
+}
+
+.bma-lead-badge--followup {
+  background: #fff6da;
+  color: #8a6400;
+}
+
+.bma-lead-badge--converted {
+  background: #e8f7ee;
+  color: #12794a;
+}
+
+.bma-lead-badge--closed {
+  background: #f1f0f4;
+  color: #6f6a85;
+}
 
 /* ---- Lead detail drawer ------------------------------------------------ */
 
@@ -768,13 +881,23 @@
 }
 
 @keyframes bma-slide-in {
-  from { transform: translateX(24px); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
+  from {
+    transform: translateX(24px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
+
   .bma-drawer-backdrop,
-  .bma-drawer { animation: none; }
+  .bma-drawer {
+    animation: none;
+  }
 }
 
 .bma-drawer-head {
@@ -824,13 +947,28 @@
   color: #fff;
 }
 
-.bma-status-pick:disabled { opacity: .6; cursor: default; }
+.bma-status-pick:disabled {
+  opacity: .6;
+  cursor: default;
+}
 
 @media (max-width: 575px) {
-  .bma-drawer { max-width: none; }
-  .bma-lead-row { padding: 14px; gap: 10px; }
-  .bma-lead-meta { align-items: flex-end; }
-  .bma-lead-time { display: none; }
+  .bma-drawer {
+    max-width: none;
+  }
+
+  .bma-lead-row {
+    padding: 14px;
+    gap: 10px;
+  }
+
+  .bma-lead-meta {
+    align-items: flex-end;
+  }
+
+  .bma-lead-time {
+    display: none;
+  }
 }
 
 /* ---- Dashboard stat tile ----------------------------------------------- */
@@ -846,6 +984,7 @@
   border-radius: 14px;
   background: #fff;
   transition: box-shadow .2s ease, transform .2s ease;
+  width: 100%;
 }
 
 .bma-stat:hover {
@@ -864,11 +1003,30 @@
   font-size: 17px;
 }
 
-.bma-stat-icon--primary { background: #f1eefb; color: var(--bma-primary); }
-.bma-stat-icon--success { background: #e8f7ee; color: #12794a; }
-.bma-stat-icon--info { background: #e8f1ff; color: #1b62d4; }
-.bma-stat-icon--warning { background: #fdf0e6; color: #b3560f; }
-.bma-stat-icon--muted { background: #f1f0f4; color: #6f6a85; }
+.bma-stat-icon--primary {
+  background: #f1eefb;
+  color: var(--bma-primary);
+}
+
+.bma-stat-icon--success {
+  background: #e8f7ee;
+  color: #12794a;
+}
+
+.bma-stat-icon--info {
+  background: #e8f1ff;
+  color: #1b62d4;
+}
+
+.bma-stat-icon--warning {
+  background: #fdf0e6;
+  color: #b3560f;
+}
+
+.bma-stat-icon--muted {
+  background: #f1f0f4;
+  color: #6f6a85;
+}
 
 .bma-stat-body {
   display: flex;
@@ -885,7 +1043,7 @@
 
 /* The label lines up under the value whether it sits inside .bma-stat-body or
  * as a direct child of .bma-stat, so the tile survives either markup. */
-.bma-stat > .bma-stat-label {
+.bma-stat>.bma-stat-label {
   flex: 1 1 100%;
   margin-top: -6px;
   padding-left: 58px;
@@ -931,7 +1089,9 @@
     gap: 12px;
   }
 
-  .bma-filter-bar-end { justify-content: flex-end; }
+  .bma-filter-bar-end {
+    justify-content: flex-end;
+  }
 }
 
 /* ---- Pagination --------------------------------------------------------- */
@@ -996,7 +1156,7 @@
   background: #f1f0f7;
 }
 
-.bma-meter > span {
+.bma-meter>span {
   display: block;
   height: 100%;
   border-radius: 999px;
