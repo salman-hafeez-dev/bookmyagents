@@ -1,6 +1,8 @@
 import { Route, BrowserRouter as Router, Routes } from 'react-router-dom';
 import HomeThreeMain from '../pages/HomeThreeMain';
 import SearchResultsMain from '../pages/SearchResultsMain';
+import PackageDetailsMain from '../pages/PackageDetailsMain';
+import AgentProfileMain from '../pages/AgentProfileMain';
 // Kept as the markup donor for the package-detail page in the next step.
 import TourDetailsOneMain from '../pages/TourDetailsOneMain';
 import AboutMain from '../pages/AboutMain';
@@ -27,6 +29,8 @@ const AppNavigation = () => {
         {/* Public marketplace */}
         <Route path="/" element={<HomeThreeMain />} />
         <Route path="/search" element={<SearchResultsMain />} />
+        <Route path="/packages/:id" element={<PackageDetailsMain />} />
+        <Route path="/agents/:id" element={<AgentProfileMain />} />
         <Route path="/tour-details" element={<TourDetailsOneMain />} />
         <Route path="/about" element={<AboutMain />} />
         <Route path="/pricing" element={<PricingMain />} />

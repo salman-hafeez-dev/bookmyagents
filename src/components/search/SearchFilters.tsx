@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { type Category } from '../../types/category';
 import { type SearchParams, type SearchType } from '../../types/search';
-import { categoryService } from '../../services/categoryService';
+import { useCategories } from '../../hooks/useCategories';
 
 interface SearchFiltersProps {
   params: SearchParams;
@@ -13,7 +12,7 @@ interface SearchFiltersProps {
 // searched: price and duration describe an offer, experience describes an
 // agency, so each set only appears for the mode it belongs to.
 const SearchFilters: React.FC<SearchFiltersProps> = ({ params, type, onChange }) => {
-  const [categories, setCategories] = useState<Category[]>([]);
+  const categories = useCategories();
 
   // Local copy so typing in a number field doesn't fire a request per keystroke;
   // committed on blur or Enter.
@@ -21,14 +20,6 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({ params, type, onChange })
 
   useEffect(() => { setDraft(params); }, [params]);
 
-  useEffect(() => {
-    let cancelled = false;
-    categoryService
-      .getCategories({ limit: 20 })
-      .then((response) => { if (!cancelled) setCategories(response.data || []); })
-      .catch((error) => console.error('Failed to load categories:', error));
-    return () => { cancelled = true; };
-  }, []);
 
   const commit = (partial: SearchParams) => onChange({ ...params, ...partial, page: 1 });
 

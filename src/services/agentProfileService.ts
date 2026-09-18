@@ -1,5 +1,6 @@
 import { AxiosError } from 'axios';
 import api from './api';
+import { type PublicAgentResponse } from '../types/publicAgent';
 import {
   type AgentProfileResponse,
   type ProgressResponse,
@@ -32,6 +33,14 @@ export function extractApiError(error: unknown): ApiValidationError {
 }
 
 export const agentProfileService = {
+  // Public agent profile — no authentication. Only approved agents resolve;
+  // anything else answers 404, so the caller never has to reason about an
+  // unverified agent existing.
+  getPublicAgent: async (agentId: string): Promise<PublicAgentResponse> => {
+    const response = await api.get(`/agents/${agentId}`);
+    return response.data;
+  },
+
   // Current agent's profile plus completion state. Creates an empty profile
   // server-side on first call.
   getStatus: async (): Promise<AgentProfileResponse> => {

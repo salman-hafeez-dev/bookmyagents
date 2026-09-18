@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { type Category } from '../../types/category';
 import { type SearchParams, type SearchType } from '../../types/search';
-import { categoryService } from '../../services/categoryService';
+import { useCategories } from '../../hooks/useCategories';
 import { toQueryString } from '../../services/searchApi';
 import ModeSwitch from './ModeSwitch';
 
@@ -26,7 +25,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ initial, onTypeChange, className 
   const [from, setFrom] = useState(initial?.from || '');
   const [to, setTo] = useState(initial?.to || '');
   const [category, setCategory] = useState(initial?.category || '');
-  const [categories, setCategories] = useState<Category[]>([]);
+  const categories = useCategories();
 
   // Keep in step when the URL changes underneath us — a category card, the
   // back button, or a filter applied in the sidebar.
@@ -37,16 +36,6 @@ const SearchBar: React.FC<SearchBarProps> = ({ initial, onTypeChange, className 
     setCategory(initial?.category || '');
   }, [initial?.type, initial?.from, initial?.to, initial?.category]);
 
-  useEffect(() => {
-    let cancelled = false;
-    categoryService
-      .getCategories({ limit: 20 })
-      .then((response) => {
-        if (!cancelled) setCategories(response.data || []);
-      })
-      .catch((error) => console.error('Failed to load categories:', error));
-    return () => { cancelled = true; };
-  }, []);
 
   const handleTypeChange = (next: SearchType) => {
     setType(next);

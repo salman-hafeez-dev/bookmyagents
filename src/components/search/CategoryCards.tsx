@@ -1,28 +1,17 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
-import { type Category } from '../../types/category';
-import { categoryService } from '../../services/categoryService';
+import { useCategories } from '../../hooks/useCategories';
 
 // The five service categories as entry points, per the plan's homepage layout.
 // Each card is a pre-filtered search rather than a page of its own, so there is
 // only ever one results page to maintain.
 const CategoryCards: React.FC = () => {
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const categories = useCategories();
 
-  useEffect(() => {
-    let cancelled = false;
-    categoryService
-      .getCategories({ limit: 20 })
-      .then((response) => {
-        if (!cancelled) setCategories(response.data || []);
-      })
-      .catch((error) => console.error('Failed to load categories:', error))
-      .finally(() => { if (!cancelled) setIsLoading(false); });
-    return () => { cancelled = true; };
-  }, []);
-
-  if (isLoading || categories.length === 0) return null;
+  // Renders nothing until there is something to show, so an empty or still
+  // loading marketplace reads as a homepage without this section rather than
+  // as a broken one.
+  if (categories.length === 0) return null;
 
   return (
     <div className="tg-category-area pt-60 pb-60">

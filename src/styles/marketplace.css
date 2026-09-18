@@ -1,0 +1,457 @@
+/* Public marketplace detail pages — package detail and agent profile.
+ *
+ * Builds on the tokens defined in search.css (--bma-primary and friends) so
+ * the whole customer-facing surface stays one visual system.
+ */
+
+:root {
+  --bma-ink: #1d1734;
+  --bma-muted: #6f6a85;
+  --bma-line: #e9e6f2;
+  --bma-surface: #f7f8fa;
+}
+
+/* ---- Shared ------------------------------------------------------------ */
+
+.bma-detail {
+  background: var(--bma-surface);
+}
+
+.bma-card {
+  background: #fff;
+  border: 1px solid var(--bma-line);
+  border-radius: 14px;
+}
+
+.bma-card-pad {
+  padding: 24px;
+}
+
+.bma-section-heading {
+  margin-bottom: 14px;
+  color: var(--bma-ink);
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.bma-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  color: var(--bma-muted);
+  font-size: 14px;
+}
+
+.bma-meta i {
+  margin-right: 6px;
+  color: var(--bma-primary);
+}
+
+.bma-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border: 1px solid var(--bma-line);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--bma-muted);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.bma-verified {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: #e8f7ee;
+  color: #12794a;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* Inclusion / exclusion lists read as a comparison, so they share a rhythm
+ * and differ only in the marker. */
+.bma-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bma-list li {
+  position: relative;
+  padding: 7px 0 7px 28px;
+  color: var(--bma-ink);
+  font-size: 15px;
+}
+
+.bma-list li::before {
+  position: absolute;
+  top: 8px;
+  left: 0;
+  /* This template ships the Pro build — the Free family names do not exist
+   * here and the glyph falls back to an empty box. */
+  font-family: 'Font Awesome 6 Pro', 'Font Awesome 5 Pro', 'Font Awesome 6 Free', 'Font Awesome 5 Free';
+  font-weight: 900;
+  font-size: 13px;
+}
+
+.bma-list--include li::before {
+  content: '\f00c';
+  color: #17a673;
+}
+
+.bma-list--exclude li::before {
+  content: '\f00d';
+  color: #d9534f;
+}
+
+/* ---- Contact actions --------------------------------------------------- */
+
+.bma-action {
+  display: inline-flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 46px;
+  padding: 12px 18px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: transform .18s ease, box-shadow .18s ease, background-color .18s ease;
+}
+
+.bma-action:focus-visible {
+  outline: 2px solid var(--bma-primary);
+  outline-offset: 2px;
+}
+
+.bma-action--whatsapp {
+  background: #25d366;
+  color: #fff;
+}
+
+.bma-action--whatsapp:hover {
+  background: #1ebe5a;
+  color: #fff;
+  box-shadow: 0 6px 18px rgba(37, 211, 102, .3);
+  transform: translateY(-1px);
+}
+
+.bma-action--call {
+  border-color: var(--bma-primary);
+  background: #fff;
+  color: var(--bma-primary);
+}
+
+.bma-action--call:hover {
+  background: var(--bma-primary);
+  color: #fff;
+  box-shadow: 0 6px 18px rgba(86, 12, 227, .25);
+  transform: translateY(-1px);
+}
+
+.bma-action.is-disabled {
+  border-color: var(--bma-line);
+  background: #f3f2f7;
+  color: #a5a0b8;
+  pointer-events: none;
+}
+
+/* ---- Gallery ----------------------------------------------------------- */
+
+.bma-gallery-main {
+  width: 100%;
+  height: 420px;
+  border-radius: 14px;
+  object-fit: cover;
+  background: #ece9f6;
+}
+
+.bma-gallery-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 420px;
+  border-radius: 14px;
+  background: #ece9f6;
+  color: #9d97b5;
+}
+
+.bma-thumbs {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.bma-thumb {
+  flex: 0 0 auto;
+  width: 92px;
+  height: 68px;
+  padding: 0;
+  border: 2px solid transparent;
+  border-radius: 10px;
+  background: none;
+  cursor: pointer;
+  overflow: hidden;
+  transition: border-color .18s ease, opacity .18s ease;
+  opacity: .75;
+}
+
+.bma-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.bma-thumb:hover {
+  opacity: 1;
+}
+
+.bma-thumb.is-active {
+  border-color: var(--bma-primary);
+  opacity: 1;
+}
+
+/* ---- Sticky booking rail ----------------------------------------------- */
+
+.bma-rail {
+  position: sticky;
+  top: 24px;
+}
+
+.bma-price-lg {
+  color: var(--bma-primary);
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.bma-facts {
+  margin: 0;
+  border-top: 1px solid var(--bma-line);
+}
+
+.bma-facts div {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--bma-line);
+  font-size: 14px;
+}
+
+.bma-facts dt {
+  color: var(--bma-muted);
+  font-weight: 500;
+}
+
+.bma-facts dd {
+  margin: 0;
+  color: var(--bma-ink);
+  font-weight: 600;
+  text-align: right;
+}
+
+/* Mobile keeps the price and the primary action within thumb reach instead of
+ * making the customer scroll back up for them. */
+.bma-mobile-bar {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 1020;
+  display: none;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px calc(10px + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--bma-line);
+  background: #fff;
+  box-shadow: 0 -6px 20px rgba(24, 16, 54, .1);
+}
+
+/* ---- Agent profile ----------------------------------------------------- */
+
+.bma-agent-cover {
+  height: 240px;
+  border-radius: 14px 14px 0 0;
+  background: var(--bma-gradient);
+  background-size: cover;
+  background-position: center;
+}
+
+.bma-agent-head {
+  padding: 0 24px 24px;
+}
+
+.bma-agent-logo {
+  width: 116px;
+  height: 116px;
+  margin-top: -58px;
+  border: 4px solid #fff;
+  border-radius: 16px;
+  background: #fff;
+  object-fit: cover;
+  box-shadow: 0 8px 20px rgba(24, 16, 54, .12);
+}
+
+.bma-agent-logo-fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #9d97b5;
+}
+
+.bma-tabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid var(--bma-line);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.bma-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.bma-tab {
+  position: relative;
+  padding: 14px 18px;
+  border: 0;
+  background: none;
+  color: var(--bma-muted);
+  font-size: 15px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color .18s ease;
+}
+
+.bma-tab:hover {
+  color: var(--bma-primary);
+}
+
+.bma-tab.is-active {
+  color: var(--bma-primary);
+}
+
+.bma-tab.is-active::after {
+  content: '';
+  position: absolute;
+  right: 12px;
+  bottom: -1px;
+  left: 12px;
+  height: 3px;
+  border-radius: 3px 3px 0 0;
+  background: var(--bma-gradient);
+}
+
+.bma-tab-count {
+  margin-left: 7px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #f1eefb;
+  color: var(--bma-primary);
+  font-size: 12px;
+}
+
+.bma-social {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border: 1px solid var(--bma-line);
+  border-radius: 10px;
+  color: var(--bma-muted);
+  transition: background-color .18s ease, color .18s ease, border-color .18s ease;
+}
+
+.bma-social:hover {
+  border-color: var(--bma-primary);
+  background: var(--bma-primary);
+  color: #fff;
+}
+
+/* ---- States ------------------------------------------------------------ */
+
+.bma-skeleton {
+  border-radius: 10px;
+  background: linear-gradient(90deg, #eceaf3 25%, #f5f4f9 37%, #eceaf3 63%);
+  background-size: 400% 100%;
+  animation: bma-shimmer 1.3s ease-in-out infinite;
+}
+
+@keyframes bma-shimmer {
+  from { background-position: 100% 50%; }
+  to { background-position: 0 50%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bma-skeleton { animation: none; }
+  .bma-action:hover,
+  .bma-result-card:hover { transform: none; }
+}
+
+.bma-empty {
+  padding: 56px 24px;
+  text-align: center;
+  color: var(--bma-muted);
+}
+
+.bma-empty i {
+  margin-bottom: 14px;
+  color: #c7c2d8;
+}
+
+/* ---- Responsive -------------------------------------------------------- */
+
+@media (max-width: 991px) {
+  .bma-rail { position: static; }
+  .bma-gallery-main,
+  .bma-gallery-empty { height: 300px; }
+  .bma-card-pad { padding: 20px; }
+}
+
+@media (max-width: 767px) {
+  .bma-mobile-bar { display: flex; }
+
+  /* The logo and the name compete for a 375px row, which leaves the title
+   * wrapping awkwardly and the chips stacked one per line. Stacking them
+   * gives the name and chips the full width they need.
+   *
+   * Scoped through .bma-agent-head on purpose: Bootstrap's .align-items-end
+   * utility is itself !important and is loaded after this file, so an
+   * equal-specificity rule here would lose on source order and leave the
+   * logo aligned to the far right of the column. */
+  .bma-agent-head .bma-agent-identity {
+    flex-direction: column;
+    align-items: flex-start !important;
+    gap: 12px !important;
+  }
+
+  .bma-agent-head .bma-agent-actions {
+    width: 100%;
+  }
+
+  .bma-agent-head .bma-agent-actions .d-flex {
+    width: 100%;
+  }
+
+  /* Clear the fixed bar so it never covers the last section. */
+  .bma-detail--has-bar { padding-bottom: 92px; }
+  .bma-gallery-main,
+  .bma-gallery-empty { height: 220px; }
+  .bma-agent-cover { height: 150px; }
+  .bma-agent-logo { width: 88px; height: 88px; margin-top: -44px; }
+  .bma-price-lg { font-size: 26px; }
+  .bma-agent-head { padding: 0 16px 20px; }
+  .bma-card-pad { padding: 16px; }
+}

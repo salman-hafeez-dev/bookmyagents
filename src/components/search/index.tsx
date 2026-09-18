@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import HeaderThree from '../../layouts/headers/HeaderThree';
 import FooterThree from '../../layouts/footers/FooterThree';
@@ -23,7 +23,10 @@ const SearchResults: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const [params, setParams] = useState<SearchParams>(() => fromQueryString(location.search));
+  // Derived, not mirrored in state: holding a copy meant the first render
+  // parsed the URL once and an effect immediately replaced it with an equal
+  // but differently-identified object, firing the search twice per load.
+  const params = useMemo<SearchParams>(() => fromQueryString(location.search), [location.search]);
   const [results, setResults] = useState<SearchResult[]>([]);
   const [total, setTotal] = useState(0);
   const [pages, setPages] = useState(1);
@@ -32,9 +35,6 @@ const SearchResults: React.FC = () => {
 
   const type: SearchType = params.type || 'packages';
 
-  useEffect(() => {
-    setParams(fromQueryString(location.search));
-  }, [location.search]);
 
   useEffect(() => {
     let cancelled = false;
