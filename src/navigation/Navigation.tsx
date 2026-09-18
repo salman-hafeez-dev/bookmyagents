@@ -1,8 +1,7 @@
 import { Route, BrowserRouter as Router, Routes } from 'react-router-dom';
 import HomeThreeMain from '../pages/HomeThreeMain';
-// Template pages kept as markup donors for the upcoming search-results and
-// package-detail pages. Remove once /search and /packages/:id replace them.
-import TourGridOneMain from '../pages/TourGridOneMain';
+import SearchResultsMain from '../pages/SearchResultsMain';
+// Kept as the markup donor for the package-detail page in the next step.
 import TourDetailsOneMain from '../pages/TourDetailsOneMain';
 import AboutMain from '../pages/AboutMain';
 import PricingMain from '../pages/PricingMain';
@@ -27,7 +26,7 @@ const AppNavigation = () => {
       <Routes>
         {/* Public marketplace */}
         <Route path="/" element={<HomeThreeMain />} />
-        <Route path="/tour-grid-2" element={<TourGridOneMain />} />
+        <Route path="/search" element={<SearchResultsMain />} />
         <Route path="/tour-details" element={<TourDetailsOneMain />} />
         <Route path="/about" element={<AboutMain />} />
         <Route path="/pricing" element={<PricingMain />} />

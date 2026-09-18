@@ -14,7 +14,7 @@ const Breadcrumb = () => {
                         <ul>
                            <li><Link to="/">Home</Link></li>
                            {/* <li><i className="fa-sharp fa-solid fa-angle-right"></i></li>
-                           <li><Link to="/tour-grid-2">Tour Grid</Link></li>
+                           <li><Link to="/search">Tour Grid</Link></li>
                            <li><i className="fa-sharp fa-solid fa-angle-right"></i></li>
                            <li><span>Vatican Museums Sistine Chapel Skip the Line</span></li> */}
                         </ul>

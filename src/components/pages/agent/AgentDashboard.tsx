@@ -18,7 +18,7 @@ type ActiveView = 'list' | 'create' | 'edit' | 'packages' | 'blogs' | 'subscript
 
 const AgentDashboard: React.FC = () => {
   const { user } = useAuth();
-  const [activeView, setActiveView] = useState<ActiveView>('list');
+  const [activeView, setActiveView] = useState<ActiveView>('packages');
   const [editingService, setEditingService] = useState<Service | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -128,12 +128,16 @@ const AgentDashboard: React.FC = () => {
       onClick: () => setActiveView('packages'),
       active: activeView === 'packages',
     },
+    // Services are superseded by Packages. Hidden rather than deleted: the
+    // records and the /api/services endpoints are untouched, so this is a
+    // one-line revert if an agent turns out to need them.
     {
       key: 'list',
       label: 'My Services',
       icon: 'fas fa-list',
       onClick: () => setActiveView('list'),
       active: activeView === 'list' || activeView === 'edit',
+      visible: false,
     },
     {
       key: 'blogs',
@@ -148,6 +152,7 @@ const AgentDashboard: React.FC = () => {
       icon: 'fas fa-plus',
       onClick: () => setActiveView('create'),
       active: activeView === 'create',
+      visible: false,
     },
     {
       key: 'subscription',

@@ -1,13 +1,9 @@
 import { configureStore } from "@reduxjs/toolkit";
 import { setupListeners } from "@reduxjs/toolkit/query";
-import productSlice from "./features/productSlice";
-import wishlistSlice from "./features/wishlistSlice";
 import { dashboardApi } from "./api/dashboardApi";
 
 const store = configureStore({
    reducer: {
-      products: productSlice,
-      wishlist: wishlistSlice,
       [dashboardApi.reducerPath]: dashboardApi.reducer,
    },
    middleware: (getDefaultMiddleware) =>

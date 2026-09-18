@@ -24,7 +24,7 @@ const Location = () => {
                            </div>
                            <div className="tg-location-content text-center">
                               <span className="tg-location-time">{item.total} Tours</span>
-                              <h3 className="tg-location-title mb-0"><Link to="/tour-grid-2">{item.title}</Link></h3>
+                              <h3 className="tg-location-title mb-0"><Link to="/search">{item.title}</Link></h3>
                            </div>
                            <div className="tg-location-border one"></div>
                            <div className="tg-location-border two"></div>
