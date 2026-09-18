@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import HeaderThree from '../../layouts/headers/HeaderThree';
 import FooterThree from '../../layouts/footers/FooterThree';
 import ContactActions from './ContactActions';
+import RequestQuoteModal from './RequestQuoteModal';
 import { DetailSkeleton, NotFoundState, ErrorState } from './DetailStates';
 import AgentPackageCard from './AgentPackageCard';
 import { type PublicAgent } from '../../types/publicAgent';
@@ -29,6 +30,7 @@ const AgentProfile: React.FC = () => {
   const [agent, setAgent] = useState<PublicAgent | null>(null);
   const [state, setState] = useState<LoadState>('loading');
   const [activeTab, setActiveTab] = useState('about');
+  const [quoteOpen, setQuoteOpen] = useState(false);
 
   const load = useCallback(async () => {
     if (!id) {
@@ -138,6 +140,8 @@ const AgentProfile: React.FC = () => {
                   whatsapp={agent.whatsapp}
                   phone={agent.phone}
                   message={enquiry}
+                  agentId={agent._id}
+                  onRequestQuote={() => setQuoteOpen(true)}
                   size="compact"
                 />
               </div>
@@ -273,7 +277,13 @@ const AgentProfile: React.FC = () => {
                   {agent.officeAddress && <div><dt>Office</dt><dd>{agent.officeAddress}</dd></div>}
                 </dl>
 
-                <ContactActions whatsapp={agent.whatsapp} phone={agent.phone} message={enquiry} />
+                <ContactActions
+                  whatsapp={agent.whatsapp}
+                  phone={agent.phone}
+                  message={enquiry}
+                  agentId={agent._id}
+                  onRequestQuote={() => setQuoteOpen(true)}
+                />
               </div>
             </div>
 
@@ -304,6 +314,13 @@ const AgentProfile: React.FC = () => {
             </div>
           </div>
         )}
+
+        <RequestQuoteModal
+          open={quoteOpen}
+          onClose={() => setQuoteOpen(false)}
+          agentId={agent._id}
+          agentName={agent.companyName}
+        />
       </div>
     );
   };

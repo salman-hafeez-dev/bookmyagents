@@ -455,3 +455,380 @@
   .bma-agent-head { padding: 0 16px 20px; }
   .bma-card-pad { padding: 16px; }
 }
+
+/* ---- Request a quote --------------------------------------------------- */
+
+.bma-action--quote {
+  border-color: var(--bma-line);
+  background: #fff;
+  color: var(--bma-ink);
+  cursor: pointer;
+}
+
+.bma-action--quote:hover {
+  border-color: var(--bma-primary);
+  color: var(--bma-primary);
+  box-shadow: 0 6px 18px rgba(24, 16, 54, .1);
+  transform: translateY(-1px);
+}
+
+.bma-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1080;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(24, 16, 54, .55);
+  animation: bma-fade .18s ease;
+}
+
+.bma-modal {
+  width: 100%;
+  max-width: 620px;
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 24px 60px rgba(24, 16, 54, .3);
+  animation: bma-rise .2s ease;
+}
+
+@keyframes bma-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes bma-rise {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bma-modal-backdrop,
+  .bma-modal { animation: none; }
+}
+
+.bma-modal-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--bma-line);
+}
+
+.bma-modal-body {
+  padding: 22px 24px;
+}
+
+.bma-modal-foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 16px 24px 22px;
+  border-top: 1px solid var(--bma-line);
+}
+
+.bma-modal-close {
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 8px;
+  background: #f3f2f7;
+  color: var(--bma-muted);
+  cursor: pointer;
+  transition: background-color .18s ease, color .18s ease;
+}
+
+.bma-modal-close:hover {
+  background: #eceaf3;
+  color: var(--bma-ink);
+}
+
+.bma-modal .form-label {
+  margin-bottom: 4px;
+  color: var(--bma-ink);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.bma-modal .form-control,
+.bma-modal .form-select {
+  height: 44px;
+  border-color: var(--bma-line);
+  border-radius: 8px;
+}
+
+.bma-modal textarea.form-control {
+  height: auto;
+}
+
+.bma-modal .form-control:focus {
+  border-color: var(--bma-primary);
+  box-shadow: 0 0 0 .2rem rgba(86, 12, 227, .12);
+}
+
+.bma-success-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 62px;
+  height: 62px;
+  border-radius: 50%;
+  background: #e8f7ee;
+  color: #12794a;
+  font-size: 24px;
+}
+
+@media (max-width: 575px) {
+  .bma-modal-backdrop { padding: 0; align-items: flex-end; }
+  .bma-modal { max-width: none; max-height: 92vh; border-radius: 16px 16px 0 0; }
+  .bma-modal-foot { flex-direction: column-reverse; }
+  .bma-modal-foot > * { width: 100%; }
+}
+
+/* ---- Agent lead inbox -------------------------------------------------- */
+
+.bma-lead-tabs {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.bma-lead-tabs::-webkit-scrollbar { display: none; }
+
+.bma-lead-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border: 1px solid var(--bma-line);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--bma-muted);
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: border-color .18s ease, color .18s ease, background-color .18s ease;
+}
+
+.bma-lead-tab:hover {
+  border-color: var(--bma-primary);
+  color: var(--bma-primary);
+}
+
+.bma-lead-tab.is-active {
+  border-color: transparent;
+  background: var(--bma-gradient);
+  color: #fff;
+}
+
+.bma-lead-tab.is-active .bma-tab-count {
+  background: rgba(255, 255, 255, .25);
+  color: #fff;
+}
+
+.bma-lead-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bma-lead-list li + li {
+  border-top: 1px solid var(--bma-line);
+}
+
+.bma-lead-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 16px 20px;
+  border: 0;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color .15s ease;
+}
+
+.bma-lead-row:hover { background: #faf9fd; }
+
+.bma-lead-row:focus-visible {
+  outline: 2px solid var(--bma-primary);
+  outline-offset: -2px;
+}
+
+.bma-lead-icon {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  font-size: 15px;
+}
+
+.bma-lead-icon--quote_request { background: #f1eefb; color: var(--bma-primary); }
+.bma-lead-icon--inquiry { background: #e8f1ff; color: #1b62d4; }
+.bma-lead-icon--whatsapp_click { background: #e6f9ed; color: #1a9e50; }
+.bma-lead-icon--phone_click { background: #fdf0e6; color: #c26414; }
+
+.bma-lead-main {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.bma-lead-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow: hidden;
+  color: var(--bma-ink);
+  font-size: 15px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* An unread marker earns its place: it is the only thing an agent scans for. */
+.bma-lead-dot {
+  flex: 0 0 auto;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--bma-primary);
+}
+
+.bma-lead-sub {
+  overflow: hidden;
+  color: var(--bma-muted);
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bma-lead-meta {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 5px;
+}
+
+.bma-lead-time {
+  color: #9d97b5;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.bma-lead-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.bma-lead-badge--new { background: #f1eefb; color: var(--bma-primary); }
+.bma-lead-badge--contacted { background: #e8f1ff; color: #1b62d4; }
+.bma-lead-badge--quote { background: #fdf0e6; color: #b3560f; }
+.bma-lead-badge--followup { background: #fff6da; color: #8a6400; }
+.bma-lead-badge--converted { background: #e8f7ee; color: #12794a; }
+.bma-lead-badge--closed { background: #f1f0f4; color: #6f6a85; }
+
+/* ---- Lead detail drawer ------------------------------------------------ */
+
+.bma-drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1080;
+  display: flex;
+  justify-content: flex-end;
+  background: rgba(24, 16, 54, .5);
+  animation: bma-fade .18s ease;
+}
+
+.bma-drawer {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 460px;
+  background: #fff;
+  box-shadow: -10px 0 40px rgba(24, 16, 54, .22);
+  animation: bma-slide-in .22s ease;
+}
+
+@keyframes bma-slide-in {
+  from { transform: translateX(24px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bma-drawer-backdrop,
+  .bma-drawer { animation: none; }
+}
+
+.bma-drawer-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 22px;
+  border-bottom: 1px solid var(--bma-line);
+}
+
+.bma-drawer-body {
+  flex: 1 1 auto;
+  padding: 22px;
+  overflow-y: auto;
+}
+
+.bma-quote {
+  padding: 14px 16px;
+  border-left: 3px solid var(--bma-primary);
+  border-radius: 0 8px 8px 0;
+  background: #faf9fd;
+  color: var(--bma-ink);
+  font-size: 15px;
+}
+
+.bma-status-pick {
+  padding: 7px 14px;
+  border: 1px solid var(--bma-line);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--bma-muted);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color .18s ease, color .18s ease, background-color .18s ease;
+}
+
+.bma-status-pick:hover:not(:disabled):not(.is-active) {
+  border-color: var(--bma-primary);
+  color: var(--bma-primary);
+}
+
+.bma-status-pick.is-active {
+  border-color: transparent;
+  background: var(--bma-gradient);
+  color: #fff;
+}
+
+.bma-status-pick:disabled { opacity: .6; cursor: default; }
+
+@media (max-width: 575px) {
+  .bma-drawer { max-width: none; }
+  .bma-lead-row { padding: 14px; gap: 10px; }
+  .bma-lead-meta { align-items: flex-end; }
+  .bma-lead-time { display: none; }
+}
