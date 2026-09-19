@@ -514,118 +514,10 @@
   transform: translateY(-1px);
 }
 
-.bma-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: 1080;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-  background: rgba(24, 16, 54, .55);
-  animation: bma-fade .18s ease;
-}
-
-.bma-modal {
-  width: 100%;
-  max-width: 620px;
-  max-height: calc(100vh - 40px);
-  overflow-y: auto;
-  border-radius: 16px;
-  background: #fff;
-  box-shadow: 0 24px 60px rgba(24, 16, 54, .3);
-  animation: bma-rise .2s ease;
-}
-
-@keyframes bma-fade {
-  from {
-    opacity: 0;
-  }
-
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes bma-rise {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-
-  .bma-modal-backdrop,
-  .bma-modal {
-    animation: none;
-  }
-}
-
-.bma-modal-head {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 20px 24px;
-  border-bottom: 1px solid var(--bma-line);
-}
-
-.bma-modal-body {
-  padding: 22px 24px;
-}
-
-.bma-modal-foot {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  padding: 16px 24px 22px;
-  border-top: 1px solid var(--bma-line);
-}
-
-.bma-modal-close {
-  width: 34px;
-  height: 34px;
-  border: 0;
-  border-radius: 8px;
-  background: #f3f2f7;
-  color: var(--bma-muted);
-  cursor: pointer;
-  transition: background-color .18s ease, color .18s ease;
-}
-
-.bma-modal-close:hover {
-  background: #eceaf3;
-  color: var(--bma-ink);
-}
-
-.bma-modal .form-label {
-  margin-bottom: 4px;
-  color: var(--bma-ink);
-  font-size: 13px;
-  font-weight: 600;
-}
-
-.bma-modal .form-control,
-.bma-modal .form-select {
-  height: 44px;
-  border-color: var(--bma-line);
-  border-radius: 8px;
-}
-
-.bma-modal textarea.form-control {
-  height: auto;
-}
-
-.bma-modal .form-control:focus {
-  border-color: var(--bma-primary);
-  box-shadow: 0 0 0 .2rem rgba(86, 12, 227, .12);
-}
+/* Modals use the project's shared <Modal> (.app-modal), which portals to
+ * <body> and sits at z-index 10000. Everything below styles content *inside*
+ * one, never the shell — a second modal system is how two dialogs end up
+ * looking and behaving differently. */
 
 .bma-success-mark {
   display: inline-flex;
@@ -639,25 +531,9 @@
   font-size: 24px;
 }
 
-@media (max-width: 575px) {
-  .bma-modal-backdrop {
-    padding: 0;
-    align-items: flex-end;
-  }
-
-  .bma-modal {
-    max-width: none;
-    max-height: 92vh;
-    border-radius: 16px 16px 0 0;
-  }
-
-  .bma-modal-foot {
-    flex-direction: column-reverse;
-  }
-
-  .bma-modal-foot>* {
-    width: 100%;
-  }
+@keyframes bma-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 /* ---- Agent lead inbox -------------------------------------------------- */
@@ -863,7 +739,9 @@
 .bma-drawer-backdrop {
   position: fixed;
   inset: 0;
-  z-index: 1080;
+  /* Just below .app-modal-overlay's 10000, so a confirm dialog or modal
+   * opened from inside the drawer lands on top of it rather than behind. */
+  z-index: 9999;
   display: flex;
   justify-content: flex-end;
   background: rgba(24, 16, 54, .5);
@@ -1192,6 +1070,7 @@
   font-size: 13px;
   vertical-align: middle;
 }
+
 /* ---- Reviews ------------------------------------------------------------ */
 
 .bma-stars {
@@ -1247,7 +1126,7 @@
   padding: 20px 24px;
 }
 
-.bma-review-list li + li {
+.bma-review-list li+li {
   border-top: 1px solid var(--bma-line);
 }
 
@@ -1282,15 +1161,16 @@ button.bma-chip:hover {
 }
 
 @media (max-width: 575px) {
-  .bma-review-list li { padding: 16px; }
-  .bma-rating-big { font-size: 38px; }
+  .bma-review-list li {
+    padding: 16px;
+  }
+
+  .bma-rating-big {
+    font-size: 38px;
+  }
 }
 
 /* ---- Quotations --------------------------------------------------------- */
-
-.bma-modal--wide {
-  max-width: 860px;
-}
 
 .bma-quote-notice {
   display: flex;
@@ -1387,6 +1267,22 @@ button.bma-chip:hover {
 
 .bma-quote-lines li:last-child {
   border-bottom: 0;
+}
+
+.bma-drawer-close {
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 8px;
+  background: #f3f2f7;
+  color: var(--bma-muted);
+  cursor: pointer;
+  transition: background-color .18s ease, color .18s ease;
+}
+
+.bma-drawer-close:hover {
+  background: #eceaf3;
+  color: var(--bma-ink);
 }
 
 .bma-quote-preview {

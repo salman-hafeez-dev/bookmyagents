@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import ModalPortal from '../../../common/ModalPortal';
 import { type Lead, type LeadStatus, CONTACTABLE_TYPES } from '../../../../types/lead';
 import { leadService } from '../../../../services/leadService';
 import { showToast, getErrorMessage } from '../../../../utils/toast';
@@ -67,7 +68,12 @@ const LeadDetail: React.FC<LeadDetailProps> = ({ lead, onClose, onUpdated, onCre
     }
   };
 
+  // Portalled for the same reason every modal here is: the dashboard shell
+  // uses `transform`, which makes it the containing block for `position: fixed`
+  // descendants, so an inline drawer would be clipped to the content area
+  // instead of covering the page.
   return (
+    <ModalPortal>
     <div
       className="bma-drawer-backdrop"
       role="presentation"
@@ -87,7 +93,7 @@ const LeadDetail: React.FC<LeadDetailProps> = ({ lead, onClose, onUpdated, onCre
               {type.label} · {timeAgo(lead.createdAt)}
             </p>
           </div>
-          <button type="button" className="bma-modal-close" onClick={onClose} aria-label="Close">
+          <button type="button" className="bma-drawer-close" onClick={onClose} aria-label="Close">
             <i className="fas fa-times" aria-hidden="true"></i>
           </button>
         </header>
@@ -203,6 +209,7 @@ const LeadDetail: React.FC<LeadDetailProps> = ({ lead, onClose, onUpdated, onCre
         </div>
       </aside>
     </div>
+    </ModalPortal>
   );
 };
 

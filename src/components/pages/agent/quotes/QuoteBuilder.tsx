@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import Modal from '../../../common/Modal';
 import { type Lead } from '../../../../types/lead';
 import {
   type Quote,
@@ -83,18 +84,6 @@ const QuoteBuilder: React.FC<QuoteBuilderProps> = ({ open, onClose, lead, quote,
     });
   }, [open, lead, quote]);
 
-  useEffect(() => {
-    if (!open) return;
-    const onKeyDown = (event: KeyboardEvent) => { if (event.key === 'Escape') onClose(); };
-    document.addEventListener('keydown', onKeyDown);
-    const previous = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.removeEventListener('keydown', onKeyDown);
-      document.body.style.overflow = previous;
-    };
-  }, [open, onClose]);
-
   // Mirrors exactly what the API will sum, so the agent never sees one total
   // and the customer another.
   const total = useMemo(
@@ -168,28 +157,24 @@ const QuoteBuilder: React.FC<QuoteBuilderProps> = ({ open, onClose, lead, quote,
   };
 
   return (
-    <div
-      className="bma-modal-backdrop"
-      role="presentation"
-      onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}
-    >
-      <div className="bma-modal bma-modal--wide" role="dialog" aria-modal="true" aria-labelledby="quote-builder-title">
-        <div className="bma-modal-head">
-          <div>
-            <h2 className="h5 mb-1" id="quote-builder-title">
-              {quote ? `Edit quotation ${quote.reference}` : 'Create quotation'}
-            </h2>
-            <p className="small text-muted mb-0">
-              Saved as a draft — nothing reaches the customer until you send it.
-            </p>
-          </div>
-          <button type="button" className="bma-modal-close" onClick={onClose} aria-label="Close">
-            <i className="fas fa-times" aria-hidden="true"></i>
+    <Modal
+      onClose={onClose}
+      title={quote ? `Edit quotation ${quote.reference}` : 'Create quotation'}
+      subtitle="Saved as a draft — nothing reaches the customer until you send it."
+      size="lg"
+      busy={isSaving}
+      onSubmit={handleSubmit}
+      footer={(
+        <>
+          <button type="button" className="btn btn-outline-secondary" onClick={onClose} disabled={isSaving}>
+            Cancel
           </button>
-        </div>
-
-        <form onSubmit={handleSubmit} noValidate>
-          <div className="bma-modal-body">
+          <button type="submit" className="bma-search-submit px-4" disabled={isSaving}>
+            {isSaving ? 'Saving…' : quote ? 'Save changes' : 'Save draft'}
+          </button>
+        </>
+      )}
+    >
             {/* Customer */}
             <h3 className="bma-section-heading h6">Customer</h3>
             <div className="row g-3 mb-4">
@@ -416,19 +401,7 @@ const QuoteBuilder: React.FC<QuoteBuilderProps> = ({ open, onClose, lead, quote,
                 />
               </div>
             </div>
-          </div>
-
-          <div className="bma-modal-foot">
-            <button type="button" className="btn btn-outline-secondary" onClick={onClose} disabled={isSaving}>
-              Cancel
-            </button>
-            <button type="submit" className="bma-search-submit px-4" disabled={isSaving}>
-              {isSaving ? 'Saving…' : quote ? 'Save changes' : 'Save draft'}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+    </Modal>
   );
 };
 

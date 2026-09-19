@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import Modal from '../common/Modal';
 import { leadService } from '../../services/leadService';
 import { type QuoteRequestInput } from '../../types/lead';
 
@@ -52,21 +53,6 @@ const RequestQuoteModal: React.FC<RequestQuoteModalProps> = ({
     return () => window.clearTimeout(timer);
   }, [open]);
 
-  // Escape closes, and the page behind must not scroll while the dialog is up.
-  useEffect(() => {
-    if (!open) return;
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onClose();
-    };
-    document.addEventListener('keydown', onKeyDown);
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.removeEventListener('keydown', onKeyDown);
-      document.body.style.overflow = previousOverflow;
-    };
-  }, [open, onClose]);
-
   if (!open) return null;
 
   const set = (key: keyof QuoteRequestInput, value: string) => {
@@ -110,28 +96,26 @@ const RequestQuoteModal: React.FC<RequestQuoteModalProps> = ({
   const subject = packageTitle || agentName;
 
   return (
-    <div
-      className="bma-modal-backdrop"
-      role="presentation"
-      onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}
-    >
-      <div className="bma-modal" role="dialog" aria-modal="true" aria-labelledby="quote-title">
-        <div className="bma-modal-head">
-          <div>
-            <h2 className="h5 mb-1" id="quote-title">
-              {isDone ? 'Request sent' : 'Request a quote'}
-            </h2>
-            {subject && !isDone && (
-              <p className="small text-muted mb-0">For {subject}</p>
-            )}
-          </div>
-          <button type="button" className="bma-modal-close" onClick={onClose} aria-label="Close">
-            <i className="fas fa-times" aria-hidden="true"></i>
+    <Modal
+      onClose={onClose}
+      title={isDone ? 'Request sent' : 'Request a quote'}
+      subtitle={!isDone && subject ? `For ${subject}` : undefined}
+      size="md"
+      busy={isSubmitting}
+      onSubmit={isDone ? undefined : handleSubmit}
+      footer={isDone ? (
+        <button type="button" className="bma-search-submit px-4" onClick={onClose}>Done</button>
+      ) : (
+        <>
+          <button type="button" className="btn btn-outline-secondary" onClick={onClose}>Cancel</button>
+          <button type="submit" className="bma-search-submit px-4" disabled={isSubmitting}>
+            {isSubmitting ? 'Sending…' : 'Send request'}
           </button>
-        </div>
-
+        </>
+      )}
+    >
         {isDone ? (
-          <div className="bma-modal-body text-center py-4">
+          <div className="text-center py-2">
             <div className="bma-success-mark mb-3">
               <i className="fas fa-check" aria-hidden="true"></i>
             </div>
@@ -140,13 +124,9 @@ const RequestQuoteModal: React.FC<RequestQuoteModalProps> = ({
               {agentName ? `${agentName} will` : 'The agent will'} contact you on the number you
               provided. Most agents reply within a day.
             </p>
-            <button type="button" className="bma-search-submit px-4" onClick={onClose}>
-              Done
-            </button>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} noValidate>
-            <div className="bma-modal-body">
+          <>
               {formError && (
                 <div className="alert alert-danger py-2 small" role="alert">{formError}</div>
               )}
@@ -264,20 +244,9 @@ const RequestQuoteModal: React.FC<RequestQuoteModalProps> = ({
                   </div>
                 </div>
               </div>
-            </div>
-
-            <div className="bma-modal-foot">
-              <button type="button" className="btn btn-outline-secondary" onClick={onClose}>
-                Cancel
-              </button>
-              <button type="submit" className="bma-search-submit px-4" disabled={isSubmitting}>
-                {isSubmitting ? 'Sending…' : 'Send request'}
-              </button>
-            </div>
-          </form>
+          </>
         )}
-      </div>
-    </div>
+    </Modal>
   );
 };
 
