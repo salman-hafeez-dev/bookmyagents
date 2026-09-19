@@ -38,6 +38,15 @@ export const reviewService = {
     return response.data;
   },
 
+  // --- Agent ----------------------------------------------------------------
+
+  // The calling agent's own reviews. Approved only — an agent who could see a
+  // pending review could lean on the customer before it is ever published.
+  getMyReviews: async (page = 1, limit = 10): Promise<ReviewListResponse> => {
+    const response = await api.get(`/agent/reviews?page=${page}&limit=${limit}`);
+    return response.data;
+  },
+
   // --- Admin ----------------------------------------------------------------
 
   getQueue: async (
