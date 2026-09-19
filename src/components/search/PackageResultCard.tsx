@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { type PackageResult } from '../../types/search';
+import StarRating from '../marketplace/StarRating';
 
 const formatPrice = (result: PackageResult) => {
   const amount = new Intl.NumberFormat('en-PK').format(result.price);
@@ -77,7 +78,16 @@ const PackageResultCard: React.FC<{ result: PackageResult }> = ({ result }) => (
           {result.agent?.isVerified && (
             <i className="fas fa-circle-check text-success ms-1" title="Verified agent"></i>
           )}
-          <div className="text-muted">{result.agent?.city}</div>
+          <div className="text-muted d-flex align-items-center gap-1">
+            {result.agent?.city}
+            {Boolean(result.agent?.reviewCount) && result.agent?.avgRating && (
+              <>
+                <span>·</span>
+                <StarRating value={result.agent.avgRating} size="sm" />
+                <span>{result.agent.avgRating.toFixed(1)}</span>
+              </>
+            )}
+          </div>
         </div>
       </div>
 

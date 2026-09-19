@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { type AgentResult } from '../../types/search';
+import StarRating from '../marketplace/StarRating';
 
 const money = (amount: number, currency: string) =>
   `${currency} ${new Intl.NumberFormat('en-PK').format(amount)}`;
@@ -47,10 +48,17 @@ const AgentResultCard: React.FC<{ result: AgentResult }> = ({ result }) => (
               <i className="fas fa-award me-1"></i>{result.yearsExperience} years experience
             </>
           )}
-          {/* Ratings arrive with the review module; until then saying so is
-              more honest than rendering five empty stars. */}
           <span className="mx-2">·</span>
-          <span>No reviews yet</span>
+          {result.reviewCount && result.avgRating ? (
+            <span className="d-inline-flex align-items-center gap-1">
+              <StarRating value={result.avgRating} size="sm" />
+              {result.avgRating.toFixed(1)} ({result.reviewCount})
+            </span>
+          ) : (
+            // An unrated agent is new, not bad. Empty stars would imply a low
+            // score where there is simply no score yet.
+            <span>No reviews yet</span>
+          )}
         </div>
 
         {result.categories?.length > 0 && (

@@ -10,6 +10,7 @@ import AgentBlogManagement from '../admin/AgentBlogManagement';
 import CategoryManagement from '../admin/CategoryManagement';
 import AgentApprovalManagement from '../admin/AgentApprovalManagement';
 import LeadsManagement from '../admin/LeadsManagement';
+import ReviewsManagement from '../admin/ReviewsManagement';
 import PaymentsManagement from '../admin/PaymentsManagement';
 import PaymentAccountSettings from '../admin/PaymentAccountSettings';
 import ConfirmationModal from '../../common/ConfirmationModal';
@@ -22,7 +23,7 @@ import { type AdminNavItem } from '../../dashboard-admin/AdminSidebar';
 import { TableSkeleton } from '../../dashboard-admin/Skeleton';
 import { useGetUsersQuery, useGetSubscriptionsQuery } from '../../../redux/api/dashboardApi';
 
-type ActiveModule = 'users' | 'subscriptions' | 'subscription-requests' | 'payments' | 'payment-account' | 'leads' | 'agents' | 'categories' | 'blogs';
+type ActiveModule = 'users' | 'subscriptions' | 'subscription-requests' | 'payments' | 'payment-account' | 'leads' | 'reviews' | 'agents' | 'categories' | 'blogs';
 type UserRoleFilter = 'all' | 'admin' | 'agent' | 'user';
 
 const DashboardArea: React.FC = () => {
@@ -210,6 +211,14 @@ const DashboardArea: React.FC = () => {
       icon: 'fas fa-inbox',
       onClick: () => setActiveModule('leads'),
       active: activeModule === 'leads',
+    },
+    {
+      key: 'reviews',
+      label: 'Review Module',
+      icon: 'fas fa-star',
+      onClick: () => setActiveModule('reviews'),
+      active: activeModule === 'reviews',
+      visible: user?.role === 'admin',
     },
     {
       key: 'agents',
@@ -579,6 +588,8 @@ const DashboardArea: React.FC = () => {
       )}
 
       {activeModule === 'leads' && user?.role === 'admin' && <LeadsManagement />}
+
+      {activeModule === 'reviews' && user?.role === 'admin' && <ReviewsManagement />}
 
       {activeModule === 'agents' && user?.role === 'admin' && (
         <AgentApprovalManagement />

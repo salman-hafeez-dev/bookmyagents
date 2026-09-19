@@ -10,12 +10,13 @@ import AgentProfileSetup from './profile/AgentProfileSetup';
 import AgentPaymentsPanel from './AgentPaymentsPanel';
 import AgentPackagesPanel from './packages/AgentPackagesPanel';
 import AgentLeadsPanel from './leads/AgentLeadsPanel';
+import AgentReviewsPanel from './reviews/AgentReviewsPanel';
 import InnerHeader from '../../../layouts/headers/InnerHeader';
 import AdminDashboardShell from '../../dashboard-admin/AdminDashboardShell';
 import { type AdminNavItem } from '../../dashboard-admin/AdminSidebar';
 import { useGetAgentServicesQuery, useGetServiceStatsQuery } from '../../../redux/api/dashboardApi';
 
-type ActiveView = 'list' | 'create' | 'edit' | 'packages' | 'leads' | 'blogs' | 'subscription' | 'profile' | 'payments';
+type ActiveView = 'list' | 'create' | 'edit' | 'packages' | 'leads' | 'reviews' | 'blogs' | 'subscription' | 'profile' | 'payments';
 
 const AgentDashboard: React.FC = () => {
   const { user } = useAuth();
@@ -130,6 +131,13 @@ const AgentDashboard: React.FC = () => {
       active: activeView === 'leads',
     },
     {
+      key: 'reviews',
+      label: 'Reviews',
+      icon: 'fas fa-star',
+      onClick: () => setActiveView('reviews'),
+      active: activeView === 'reviews',
+    },
+    {
       key: 'packages',
       label: 'My Packages',
       icon: 'fas fa-suitcase-rolling',
@@ -198,6 +206,9 @@ const AgentDashboard: React.FC = () => {
 
         {/* Leads — what the subscription actually delivers */}
         {activeView === 'leads' && <AgentLeadsPanel />}
+
+        {/* Reviews — read-only: a rating an agent can curate is not a rating */}
+        {activeView === 'reviews' && <AgentReviewsPanel />}
 
         {/* Services List View */}
         {activeView === 'list' && (

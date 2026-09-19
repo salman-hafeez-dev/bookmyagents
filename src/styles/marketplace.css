@@ -1192,3 +1192,96 @@
   font-size: 13px;
   vertical-align: middle;
 }
+/* ---- Reviews ------------------------------------------------------------ */
+
+.bma-stars {
+  display: inline-flex;
+  gap: 2px;
+  line-height: 1;
+}
+
+.bma-stars i {
+  color: #d8d4e4;
+}
+
+.bma-stars i.is-filled {
+  color: #f5a623;
+}
+
+.bma-star-btn {
+  padding: 0 2px;
+  border: 0;
+  background: none;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.bma-star-btn:focus-visible {
+  outline: 2px solid var(--bma-primary);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.bma-stars.is-interactive i {
+  transition: color .12s ease, transform .12s ease;
+}
+
+.bma-star-btn:hover i {
+  transform: scale(1.12);
+}
+
+.bma-rating-big {
+  color: var(--bma-ink);
+  font-size: 46px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.bma-review-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bma-review-list li {
+  padding: 20px 24px;
+}
+
+.bma-review-list li + li {
+  border-top: 1px solid var(--bma-line);
+}
+
+.bma-review-avatar {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  overflow: hidden;
+  border-radius: 50%;
+  background: #f1eefb;
+  color: var(--bma-primary);
+  font-weight: 700;
+}
+
+.bma-review-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* The chip carries stars as well as text, so it needs the button reset. */
+button.bma-chip {
+  font-family: inherit;
+}
+
+button.bma-chip:hover {
+  border-color: var(--bma-primary);
+  color: var(--bma-primary);
+}
+
+@media (max-width: 575px) {
+  .bma-review-list li { padding: 16px; }
+  .bma-rating-big { font-size: 38px; }
+}

@@ -10,6 +10,8 @@ export interface SearchAgentSummary {
   province?: string;
   logo?: string;
   yearsExperience?: number;
+  avgRating?: number;
+  reviewCount?: number;
   isVerified: boolean;
 }
 
@@ -45,6 +47,8 @@ export interface AgentResult {
   companyDescription?: string;
   areaServed?: string[];
   profileCompletionPercentage: number;
+  avgRating?: number;
+  reviewCount?: number;
   isVerified: boolean;
   packageCount: number;
   startingPrice?: number;
