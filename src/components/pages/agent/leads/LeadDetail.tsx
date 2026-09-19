@@ -9,11 +9,14 @@ interface LeadDetailProps {
   lead: Lead | null;
   onClose: () => void;
   onUpdated: (lead: Lead) => void;
+  // Quoting is the natural next action on a request, so it belongs here
+  // rather than making the agent go and find the lead again elsewhere.
+  onCreateQuote?: (lead: Lead) => void;
 }
 
 // A side panel rather than a full page: an agent triaging an inbox wants to
 // open one lead, act, and get back to the list without losing their place.
-const LeadDetail: React.FC<LeadDetailProps> = ({ lead, onClose, onUpdated }) => {
+const LeadDetail: React.FC<LeadDetailProps> = ({ lead, onClose, onUpdated, onCreateQuote }) => {
   const [notes, setNotes] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [savingStatus, setSavingStatus] = useState<LeadStatus | null>(null);
@@ -115,6 +118,17 @@ const LeadDetail: React.FC<LeadDetailProps> = ({ lead, onClose, onUpdated }) => 
                   </a>
                 )}
               </div>
+
+              {onCreateQuote && (
+                <button
+                  type="button"
+                  className="bma-search-submit w-100 mt-2"
+                  onClick={() => onCreateQuote(lead)}
+                >
+                  <i className="fas fa-file-invoice me-2" aria-hidden="true"></i>
+                  Create quotation
+                </button>
+              )}
             </section>
           ) : (
             <div className="alert alert-light border small">

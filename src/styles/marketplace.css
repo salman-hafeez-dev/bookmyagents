@@ -1285,3 +1285,126 @@ button.bma-chip:hover {
   .bma-review-list li { padding: 16px; }
   .bma-rating-big { font-size: 38px; }
 }
+
+/* ---- Quotations --------------------------------------------------------- */
+
+.bma-modal--wide {
+  max-width: 860px;
+}
+
+.bma-quote-notice {
+  display: flex;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 1px solid #cdeedb;
+  border-radius: 10px;
+  background: #f1fbf5;
+  color: #14603f;
+}
+
+.bma-quote-notice i {
+  margin-top: 2px;
+  color: #1a9e50;
+  font-size: 18px;
+}
+
+/* Line-item editor: description grows, amount stays a fixed, scannable
+ * column so the figures line up as a price list rather than drifting. */
+.bma-quote-items {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.bma-quote-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px;
+  border: 1px solid var(--bma-line);
+  border-radius: 10px;
+  background: #fbfafe;
+}
+
+.bma-quote-item-main {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.bma-quote-amount {
+  flex: 0 0 140px;
+  width: 140px;
+  text-align: right;
+}
+
+.bma-quote-remove {
+  flex: 0 0 auto;
+  width: 34px;
+  height: 38px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--bma-muted);
+  cursor: pointer;
+  transition: background-color .18s ease, color .18s ease;
+}
+
+.bma-quote-remove:hover {
+  background: #fdeaea;
+  color: #c0392b;
+}
+
+.bma-quote-total {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-radius: 10px;
+  background: #f1eefb;
+  color: var(--bma-ink);
+  font-size: 15px;
+}
+
+.bma-quote-total strong {
+  color: var(--bma-primary);
+  font-size: 22px;
+}
+
+.bma-quote-lines {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bma-quote-lines li {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--bma-line);
+}
+
+.bma-quote-lines li:last-child {
+  border-bottom: 0;
+}
+
+.bma-quote-preview {
+  padding: 12px 14px;
+  border-left: 3px solid #1a9e50;
+  border-radius: 0 8px 8px 0;
+  background: #f4fbf7;
+  color: var(--bma-ink);
+  font-size: 14px;
+}
+
+@media (max-width: 575px) {
+  .bma-quote-item {
+    flex-wrap: wrap;
+  }
+
+  .bma-quote-amount {
+    flex: 1 1 auto;
+    width: auto;
+  }
+}

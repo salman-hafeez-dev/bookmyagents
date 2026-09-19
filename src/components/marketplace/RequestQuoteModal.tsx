@@ -171,7 +171,7 @@ const RequestQuoteModal: React.FC<RequestQuoteModalProps> = ({
 
                 <div className="col-md-6">
                   <label className="form-label" htmlFor="quote-phone">
-                    Phone <span className="text-danger">*</span>
+                    WhatsApp number <span className="text-danger">*</span>
                   </label>
                   <input
                     id="quote-phone"
@@ -246,16 +246,24 @@ const RequestQuoteModal: React.FC<RequestQuoteModalProps> = ({
                     id="quote-message"
                     rows={3}
                     className="form-control"
-                    placeholder="Hotel preference, departure city, special requirements…"
+                    placeholder="Hotel preference, departure city, special requirements, or ask for a call instead…"
                     value={values.message}
                     onChange={(event) => set('message', event.target.value)}
                   />
                 </div>
               </div>
 
-              <p className="small text-muted mt-3 mb-0">
-                Your name and number are shared with this agent so they can reply.
-              </p>
+              <div className="bma-quote-notice mt-3">
+                <i className="fab fa-whatsapp" aria-hidden="true"></i>
+                <div>
+                  <strong>Your quotation will be sent to you on WhatsApp.</strong>
+                  <div className="small">
+                    Please give an active WhatsApp number. If you would rather the agent called
+                    you instead, say so in the message below. Your name and number are shared
+                    with this agent so they can reply.
+                  </div>
+                </div>
+              </div>
             </div>
 
             <div className="bma-modal-foot">
