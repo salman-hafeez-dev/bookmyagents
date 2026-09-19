@@ -11,12 +11,13 @@ import AgentPaymentsPanel from './AgentPaymentsPanel';
 import AgentPackagesPanel from './packages/AgentPackagesPanel';
 import AgentLeadsPanel from './leads/AgentLeadsPanel';
 import AgentReviewsPanel from './reviews/AgentReviewsPanel';
+import AgentQuotesPanel from './quotes/AgentQuotesPanel';
 import InnerHeader from '../../../layouts/headers/InnerHeader';
 import AdminDashboardShell from '../../dashboard-admin/AdminDashboardShell';
 import { type AdminNavItem } from '../../dashboard-admin/AdminSidebar';
 import { useGetAgentServicesQuery, useGetServiceStatsQuery } from '../../../redux/api/dashboardApi';
 
-type ActiveView = 'list' | 'create' | 'edit' | 'packages' | 'leads' | 'reviews' | 'blogs' | 'subscription' | 'profile' | 'payments';
+type ActiveView = 'list' | 'create' | 'edit' | 'packages' | 'leads' | 'quotes' | 'reviews' | 'blogs' | 'subscription' | 'profile' | 'payments';
 
 const AgentDashboard: React.FC = () => {
   const { user } = useAuth();
@@ -131,6 +132,13 @@ const AgentDashboard: React.FC = () => {
       active: activeView === 'leads',
     },
     {
+      key: 'quotes',
+      label: 'Quotations',
+      icon: 'fas fa-file-invoice',
+      onClick: () => setActiveView('quotes'),
+      active: activeView === 'quotes',
+    },
+    {
       key: 'reviews',
       label: 'Reviews',
       icon: 'fas fa-star',
@@ -206,6 +214,9 @@ const AgentDashboard: React.FC = () => {
 
         {/* Leads — what the subscription actually delivers */}
         {activeView === 'leads' && <AgentLeadsPanel />}
+
+        {/* Quotations — the priced answer to a quote request */}
+        {activeView === 'quotes' && <AgentQuotesPanel />}
 
         {/* Reviews — read-only: a rating an agent can curate is not a rating */}
         {activeView === 'reviews' && <AgentReviewsPanel />}

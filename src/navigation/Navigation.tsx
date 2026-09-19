@@ -3,6 +3,7 @@ import HomeThreeMain from '../pages/HomeThreeMain';
 import SearchResultsMain from '../pages/SearchResultsMain';
 import PackageDetailsMain from '../pages/PackageDetailsMain';
 import AgentProfileMain from '../pages/AgentProfileMain';
+import QuoteViewMain from '../pages/QuoteViewMain';
 // Kept as the markup donor for the package-detail page in the next step.
 import TourDetailsOneMain from '../pages/TourDetailsOneMain';
 import AboutMain from '../pages/AboutMain';
@@ -31,6 +32,9 @@ const AppNavigation = () => {
         <Route path="/search" element={<SearchResultsMain />} />
         <Route path="/packages/:id" element={<PackageDetailsMain />} />
         <Route path="/agents/:id" element={<AgentProfileMain />} />
+        {/* Reached by link from WhatsApp — deliberately outside any auth guard,
+            because the customer has no account. */}
+        <Route path="/quote/:token" element={<QuoteViewMain />} />
         <Route path="/tour-details" element={<TourDetailsOneMain />} />
         <Route path="/about" element={<AboutMain />} />
         <Route path="/pricing" element={<PricingMain />} />

@@ -10,6 +10,7 @@ import {
 import { leadService } from '../../../../services/leadService';
 import { showToast, getErrorMessage } from '../../../../utils/toast';
 import LeadDetail from './LeadDetail';
+import QuoteBuilder from '../quotes/QuoteBuilder';
 import StatTile from '../../../dashboard-admin/StatTile';
 import Pager from '../../../dashboard-admin/Pager';
 import { STATUS_META, STATUS_ORDER, TYPE_META, timeAgo } from './leadMeta';
@@ -32,6 +33,7 @@ const AgentLeadsPanel: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
   const [selected, setSelected] = useState<Lead | null>(null);
+  const [quotingLead, setQuotingLead] = useState<Lead | null>(null);
 
   const load = useCallback(async () => {
     try {
@@ -262,6 +264,17 @@ const AgentLeadsPanel: React.FC = () => {
         lead={selected}
         onClose={() => setSelected(null)}
         onUpdated={handleUpdated}
+        onCreateQuote={(lead) => { setQuotingLead(lead); setSelected(null); }}
+      />
+
+      <QuoteBuilder
+        open={Boolean(quotingLead)}
+        lead={quotingLead}
+        onClose={() => setQuotingLead(null)}
+        onSaved={() => {
+          setQuotingLead(null);
+          showToast.success('Draft saved — open Quotations to review and send it');
+        }}
       />
     </>
   );

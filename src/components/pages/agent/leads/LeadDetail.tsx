@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import ModalPortal from '../../../common/ModalPortal';
 import { type Lead, type LeadStatus, CONTACTABLE_TYPES } from '../../../../types/lead';
 import { leadService } from '../../../../services/leadService';
 import { showToast, getErrorMessage } from '../../../../utils/toast';
@@ -9,11 +10,14 @@ interface LeadDetailProps {
   lead: Lead | null;
   onClose: () => void;
   onUpdated: (lead: Lead) => void;
+  // Quoting is the natural next action on a request, so it belongs here
+  // rather than making the agent go and find the lead again elsewhere.
+  onCreateQuote?: (lead: Lead) => void;
 }
 
 // A side panel rather than a full page: an agent triaging an inbox wants to
 // open one lead, act, and get back to the list without losing their place.
-const LeadDetail: React.FC<LeadDetailProps> = ({ lead, onClose, onUpdated }) => {
+const LeadDetail: React.FC<LeadDetailProps> = ({ lead, onClose, onUpdated, onCreateQuote }) => {
   const [notes, setNotes] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [savingStatus, setSavingStatus] = useState<LeadStatus | null>(null);
@@ -64,7 +68,12 @@ const LeadDetail: React.FC<LeadDetailProps> = ({ lead, onClose, onUpdated }) => 
     }
   };
 
+  // Portalled for the same reason every modal here is: the dashboard shell
+  // uses `transform`, which makes it the containing block for `position: fixed`
+  // descendants, so an inline drawer would be clipped to the content area
+  // instead of covering the page.
   return (
+    <ModalPortal>
     <div
       className="bma-drawer-backdrop"
       role="presentation"
@@ -84,7 +93,7 @@ const LeadDetail: React.FC<LeadDetailProps> = ({ lead, onClose, onUpdated }) => 
               {type.label} · {timeAgo(lead.createdAt)}
             </p>
           </div>
-          <button type="button" className="bma-modal-close" onClick={onClose} aria-label="Close">
+          <button type="button" className="bma-drawer-close" onClick={onClose} aria-label="Close">
             <i className="fas fa-times" aria-hidden="true"></i>
           </button>
         </header>
@@ -115,6 +124,17 @@ const LeadDetail: React.FC<LeadDetailProps> = ({ lead, onClose, onUpdated }) => 
                   </a>
                 )}
               </div>
+
+              {onCreateQuote && (
+                <button
+                  type="button"
+                  className="bma-search-submit w-100 mt-2"
+                  onClick={() => onCreateQuote(lead)}
+                >
+                  <i className="fas fa-file-invoice me-2" aria-hidden="true"></i>
+                  Create quotation
+                </button>
+              )}
             </section>
           ) : (
             <div className="alert alert-light border small">
@@ -189,6 +209,7 @@ const LeadDetail: React.FC<LeadDetailProps> = ({ lead, onClose, onUpdated }) => 
         </div>
       </aside>
     </div>
+    </ModalPortal>
   );
 };
 
