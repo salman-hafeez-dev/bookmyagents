@@ -6,6 +6,8 @@ import ContactActions from './ContactActions';
 import RequestQuoteModal from './RequestQuoteModal';
 import { DetailSkeleton, NotFoundState, ErrorState } from './DetailStates';
 import AgentPackageCard from './AgentPackageCard';
+import ReviewsTab from './ReviewsTab';
+import StarRating from './StarRating';
 import { type PublicAgent } from '../../types/publicAgent';
 import { agentProfileService } from '../../services/agentProfileService';
 import { formatMoney } from '../../utils/format';
@@ -31,6 +33,7 @@ const AgentProfile: React.FC = () => {
   const [state, setState] = useState<LoadState>('loading');
   const [activeTab, setActiveTab] = useState('about');
   const [quoteOpen, setQuoteOpen] = useState(false);
+  const [rating, setRating] = useState<{ avgRating: number; reviewCount: number } | null>(null);
 
   const load = useCallback(async () => {
     if (!id) {
@@ -42,6 +45,10 @@ const AgentProfile: React.FC = () => {
       setState('loading');
       const response = await agentProfileService.getPublicAgent(id);
       setAgent(response.data);
+      setRating({
+        avgRating: response.data.avgRating || 0,
+        reviewCount: response.data.reviewCount || 0,
+      });
       setState('ready');
     } catch (error) {
       const status = (error as { response?: { status?: number } })?.response?.status;
@@ -60,7 +67,7 @@ const AgentProfile: React.FC = () => {
         label: group.category.name,
         count: group.packages.length,
       })),
-      { key: 'reviews', label: 'Reviews', count: undefined },
+      { key: 'reviews', label: 'Reviews', count: agent.reviewCount || undefined },
       { key: 'contact', label: 'Contact', count: undefined },
     ];
   }, [agent]);
@@ -125,6 +132,17 @@ const AgentProfile: React.FC = () => {
                       <i className="fas fa-suitcase-rolling"></i>
                       {agent.packageCount} package{agent.packageCount === 1 ? '' : 's'}
                     </span>
+                    {rating && rating.reviewCount > 0 && (
+                      <button
+                        type="button"
+                        className="bma-chip"
+                        style={{ cursor: 'pointer' }}
+                        onClick={() => setActiveTab('reviews')}
+                      >
+                        <StarRating value={rating.avgRating} size="sm" />
+                        {rating.avgRating.toFixed(1)} ({rating.reviewCount})
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -246,13 +264,14 @@ const AgentProfile: React.FC = () => {
         )}
 
         {activeTab === 'reviews' && (
-          <div className="bma-card bma-empty">
-            <i className="fas fa-star fa-2x d-block" aria-hidden="true"></i>
-            <h2 className="h5 mb-2" style={{ color: 'var(--bma-ink)' }}>No reviews yet</h2>
-            <p className="mb-0">
-              Customer reviews are coming soon. Every agent here has been verified by our team.
-            </p>
-          </div>
+          <ReviewsTab
+            agentId={agent._id}
+            agentName={agent.companyName}
+            onSummaryChange={(summary) => setRating({
+              avgRating: summary.avgRating,
+              reviewCount: summary.reviewCount,
+            })}
+          />
         )}
 
         {activeTab === 'contact' && (

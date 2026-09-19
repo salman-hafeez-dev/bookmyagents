@@ -46,6 +46,8 @@ export interface PublicAgent {
 
   categories: Category[];
   packagesByCategory: AgentCategoryPackages[];
+  avgRating?: number;
+  reviewCount?: number;
   packageCount: number;
   startingPrice?: number;
   approvedAt?: string;

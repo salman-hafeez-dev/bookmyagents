@@ -87,6 +87,7 @@ const SearchResults: React.FC = () => {
   const sortOptions = type === 'packages'
     ? [
       { value: 'recommended', label: 'Recommended' },
+      { value: 'rating', label: 'Highest rated' },
       { value: 'price_asc', label: 'Price: low to high' },
       { value: 'price_desc', label: 'Price: high to low' },
       { value: 'duration', label: 'Shortest trip' },
@@ -94,6 +95,7 @@ const SearchResults: React.FC = () => {
     ]
     : [
       { value: 'recommended', label: 'Recommended' },
+      { value: 'rating', label: 'Highest rated' },
       { value: 'experience', label: 'Most experienced' },
       { value: 'packages', label: 'Most packages' },
       { value: 'newest', label: 'Newest' },
