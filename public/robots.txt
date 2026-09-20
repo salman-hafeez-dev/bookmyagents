@@ -1,0 +1,16 @@
+# Book My Travel Agents
+
+User-agent: *
+Allow: /
+
+# Private areas. The pages themselves also send `noindex` — this stops the
+# crawl, that stops the listing.
+Disallow: /dashboard
+Disallow: /agent-dashboard
+Disallow: /profile
+Disallow: /login
+Disallow: /register
+
+# Customer quotation links. Unguessable by design, and they carry a real
+# person's name, phone number and prices.
+Disallow: /quote/

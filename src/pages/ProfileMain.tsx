@@ -5,7 +5,8 @@ import Wrapper from "../layouts/Wrapper"
 const ProfileMain = () => {
     return (
         <Wrapper>
-            <SEO pageTitle={'Profile'} />
+            {/* A signed-in user’s own profile — private. */}
+            <SEO pageTitle={'Profile'} noIndex />
             <Profile />
         </Wrapper>
     )

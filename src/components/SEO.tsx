@@ -11,9 +11,10 @@ interface SEOProps {
    */
   canonical?: string;
   /**
-   * The site has historically been noindex across the board while it was
-   * being built, so that stays the default. The public content pages
-   * (contact, terms, privacy) pass `noIndex={false}` to opt in to indexing.
+   * Public pages are indexable by default. Pass `noIndex` on anything that
+   * should stay out of search results — the dashboards, the auth screens and
+   * the customer quotation link, which carries a real person's name, phone
+   * number and prices behind an unguessable URL.
    */
   noIndex?: boolean;
   /** Optional site name override, so admin-controlled branding can drive it. */
@@ -21,16 +22,23 @@ interface SEOProps {
 }
 
 const DEFAULT_SITE_NAME = "Book My Travel Agents";
-const DEFAULT_DESCRIPTION = "Book My Travel Agents";
+const DEFAULT_DESCRIPTION =
+  "Find and book verified travel agents in Pakistan for Umrah, study visas, job visas, domestic tours and international holiday packages.";
 
 const SEO = ({
   pageTitle,
   description,
   canonical,
-  noIndex = true,
+  noIndex = false,
   siteName = DEFAULT_SITE_NAME,
 }: SEOProps) => {
-  const title = `${pageTitle} ${siteName}`.trim();
+  // Pages historically passed titles like "Contact ||" to fake a separator.
+  // Strip any trailing pipes/whitespace and join properly, so every page ends
+  // up as "Page name | Book My Travel Agents" whichever style it was written in.
+  const cleanTitle = pageTitle.replace(/[\s|]+$/, '').trim();
+  const title = cleanTitle && cleanTitle !== siteName
+    ? `${cleanTitle} | ${siteName}`
+    : siteName;
   const metaDescription = description || DEFAULT_DESCRIPTION;
 
   const canonicalUrl = canonical
