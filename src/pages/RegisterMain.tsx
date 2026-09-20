@@ -5,7 +5,8 @@ import Wrapper from "../layouts/Wrapper"
 const RegisterMain = () => {
    return (
       <Wrapper>
-         <SEO pageTitle={'Register'} />
+         {/* Auth screen — no search value, and duplicate-thin content. */}
+         <SEO pageTitle={'Register'} noIndex />
          <Register />
       </Wrapper>
    )

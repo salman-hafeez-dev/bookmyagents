@@ -5,7 +5,8 @@ import Wrapper from "../layouts/Wrapper"
 const LogInMain = () => {
    return (
       <Wrapper>
-         <SEO pageTitle={'LogIn'} />
+         {/* Auth screen — no search value, and duplicate-thin content. */}
+         <SEO pageTitle={'LogIn'} noIndex />
          <Login />
       </Wrapper>
    )

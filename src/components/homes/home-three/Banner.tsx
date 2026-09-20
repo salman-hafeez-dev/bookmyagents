@@ -1,14 +1,17 @@
+import { useEffect, useState } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, EffectFade, Autoplay } from "swiper/modules";
 import { Link } from "react-router-dom";
 import Button from '../../common/Button';
 
+// WebP, and roughly a third smaller than the JPEGs they replace. The .jpg
+// originals are kept in the repo but nothing references them.
 const banner_thumb: string[] = [
-   "/assets/img/hero/hero-1.jpg",
-   "/assets/img/hero/hero-2.jpg",
-   "/assets/img/hero/hero-3.jpg",
-   "/assets/img/hero/hero-4.jpg",
-   "/assets/img/hero/hero-5.jpg",
+   "/assets/img/hero/hero-1.webp",
+   "/assets/img/hero/hero-2.webp",
+   "/assets/img/hero/hero-3.webp",
+   "/assets/img/hero/hero-4.webp",
+   "/assets/img/hero/hero-5.webp",
 ]
 
 const setting = {
@@ -28,6 +31,25 @@ const setting = {
 };
 
 const Banner = () => {
+   // Only the first slide is visible on load; the other four used to download
+   // immediately anyway, costing well over a megabyte before anyone saw
+   // anything. They are fetched once the page is idle instead — the carousel
+   // does not advance for 3.5s, so they are always in place in time.
+   const [loadRemainingSlides, setLoadRemainingSlides] = useState(false);
+
+   useEffect(() => {
+      const start = () => setLoadRemainingSlides(true);
+
+      if (typeof window.requestIdleCallback === 'function') {
+         const handle = window.requestIdleCallback(start, { timeout: 2000 });
+         return () => window.cancelIdleCallback?.(handle);
+      }
+
+      // Safari has no requestIdleCallback — a timer is close enough here.
+      const timer = setTimeout(start, 1200);
+      return () => clearTimeout(timer);
+   }, []);
+
    return (
       <div className="tg-hero-area fix p-relative">
          <div className="tg-hero-top-shadow"></div>
@@ -36,7 +58,12 @@ const Banner = () => {
                {banner_thumb.map((thumb, i) => (
                   <SwiperSlide key={i} className="swiper-slide">
                      <div className="tg-hero-bg">
-                        <div className="tg-hero-thumb" style={{ backgroundImage: `url(${thumb})` }}></div>
+                        <div
+                           className="tg-hero-thumb"
+                           style={{
+                              backgroundImage: i === 0 || loadRemainingSlides ? `url(${thumb})` : undefined,
+                           }}
+                        ></div>
                      </div>
                   </SwiperSlide>
                ))}

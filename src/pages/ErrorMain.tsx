@@ -5,7 +5,8 @@ import Wrapper from "../layouts/Wrapper"
 const ErrorMain = () => {
    return (
       <Wrapper>
-         <SEO pageTitle={'404 ||'} />
+         {/* 404 page — must not be indexed. */}
+         <SEO pageTitle={'404 ||'} noIndex />
          <NotFound />
       </Wrapper>
    )

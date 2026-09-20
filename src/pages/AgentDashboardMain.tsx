@@ -5,7 +5,8 @@ import Wrapper from "../layouts/Wrapper"
 const AgentDashboardMain = () => {
    return (
       <Wrapper>
-         <SEO pageTitle={'Agent Dashboard'} />
+         {/* Agent dashboard — private. */}
+         <SEO pageTitle={'Agent Dashboard'} noIndex />
          <AgentDashboard />
       </Wrapper>
    )

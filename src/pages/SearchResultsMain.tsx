@@ -8,7 +8,11 @@ const SearchResultsMain = () => {
    useAnalytics(GA_MEASUREMENT_ID);
    return (
       <Wrapper>
-         <SEO pageTitle={'Search'} />
+         <SEO
+            pageTitle={'Find a Travel Agent'}
+            description="Search verified travel agents and packages by destination, departure city and service. Compare prices, ratings and itineraries in one place."
+            canonical="/search"
+         />
          <SearchResults />
       </Wrapper>
    )
