@@ -68,7 +68,9 @@
 /*  01. Theme Default CSS
 ==============================================*/
 
-@import url($font-url);
+// Poppins + Outfit are requested from index.html with preconnect instead.
+// A CSS @import is serially render-blocking: the browser has to download and
+// parse this stylesheet before it even discovers the font stylesheet exists.
 
 
 /*=============================
