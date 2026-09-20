@@ -13,6 +13,8 @@ import LeadsManagement from '../admin/LeadsManagement';
 import ReviewsManagement from '../admin/ReviewsManagement';
 import PaymentsManagement from '../admin/PaymentsManagement';
 import PaymentAccountSettings from '../admin/PaymentAccountSettings';
+import SiteSettingsManagement from '../admin/SiteSettingsManagement';
+import LegalPagesManagement from '../admin/LegalPagesManagement';
 import ConfirmationModal from '../../common/ConfirmationModal';
 import AdminChangePasswordModal from '../../modals/AdminChangePasswordModal';
 import { showToast } from '../../../utils/toast';
@@ -23,7 +25,7 @@ import { type AdminNavItem } from '../../dashboard-admin/AdminSidebar';
 import { TableSkeleton } from '../../dashboard-admin/Skeleton';
 import { useGetUsersQuery, useGetSubscriptionsQuery } from '../../../redux/api/dashboardApi';
 
-type ActiveModule = 'users' | 'subscriptions' | 'subscription-requests' | 'payments' | 'payment-account' | 'leads' | 'reviews' | 'agents' | 'categories' | 'blogs';
+type ActiveModule = 'users' | 'subscriptions' | 'subscription-requests' | 'payments' | 'payment-account' | 'leads' | 'reviews' | 'agents' | 'categories' | 'blogs' | 'site-settings' | 'legal-pages';
 type UserRoleFilter = 'all' | 'admin' | 'agent' | 'user';
 
 const DashboardArea: React.FC = () => {
@@ -242,6 +244,22 @@ const DashboardArea: React.FC = () => {
       icon: 'fas fa-blog',
       onClick: () => setActiveModule('blogs'),
       active: activeModule === 'blogs',
+    },
+    {
+      key: 'site-settings',
+      label: 'Site & Contact',
+      icon: 'fas fa-address-book',
+      onClick: () => setActiveModule('site-settings'),
+      active: activeModule === 'site-settings',
+      visible: user?.role === 'admin',
+    },
+    {
+      key: 'legal-pages',
+      label: 'Legal Pages',
+      icon: 'fas fa-file-contract',
+      onClick: () => setActiveModule('legal-pages'),
+      active: activeModule === 'legal-pages',
+      visible: user?.role === 'admin',
     },
   ];
 
@@ -585,6 +603,14 @@ const DashboardArea: React.FC = () => {
 
       {activeModule === 'payment-account' && user?.role === 'admin' && (
         <PaymentAccountSettings />
+      )}
+
+      {activeModule === 'site-settings' && user?.role === 'admin' && (
+        <SiteSettingsManagement />
+      )}
+
+      {activeModule === 'legal-pages' && user?.role === 'admin' && (
+        <LegalPagesManagement />
       )}
 
       {activeModule === 'leads' && user?.role === 'admin' && <LeadsManagement />}

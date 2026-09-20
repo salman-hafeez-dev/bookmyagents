@@ -1,0 +1,154 @@
+/* Document layout for the admin-authored legal pages (terms, privacy and any
+   future policy). Plain, readable typography — the content is long-form text,
+   so the priority is line length, spacing and contrast. */
+
+.tg-legal-document {
+  background: #fff;
+  border: 1px solid #e9eef3;
+  border-radius: 12px;
+  padding: 40px;
+  box-shadow: 0 8px 30px rgba(15, 39, 66, 0.05);
+}
+
+.tg-legal-header h1 {
+  font-size: 34px;
+  line-height: 1.25;
+}
+
+.tg-legal-excerpt {
+  color: #5a6b7d;
+  font-size: 17px;
+}
+
+.tg-legal-meta {
+  color: #7b8a99;
+  font-size: 14px;
+}
+
+.tg-legal-content {
+  color: #3d4c5c;
+  font-size: 16px;
+  line-height: 1.8;
+  /* Keeps a comfortable measure on wide screens without a fixed width. */
+  max-width: 72ch;
+  overflow-wrap: anywhere;
+}
+
+.tg-legal-content h1,
+.tg-legal-content h2,
+.tg-legal-content h3,
+.tg-legal-content h4 {
+  color: #0f2742;
+  margin-top: 36px;
+  margin-bottom: 14px;
+  line-height: 1.35;
+}
+
+.tg-legal-content h1 { font-size: 28px; }
+.tg-legal-content h2 { font-size: 24px; }
+.tg-legal-content h3 { font-size: 20px; }
+.tg-legal-content h4 { font-size: 18px; }
+
+.tg-legal-content > *:first-child {
+  margin-top: 0;
+}
+
+.tg-legal-content p {
+  margin-bottom: 18px;
+}
+
+.tg-legal-content ul,
+.tg-legal-content ol {
+  margin: 0 0 18px 0;
+  padding-left: 24px;
+}
+
+.tg-legal-content li {
+  margin-bottom: 8px;
+}
+
+.tg-legal-content a {
+  color: #0d7d6c;
+  text-decoration: underline;
+}
+
+.tg-legal-content a:hover,
+.tg-legal-content a:focus-visible {
+  color: #095a4e;
+}
+
+.tg-legal-content blockquote {
+  margin: 0 0 18px 0;
+  padding: 12px 20px;
+  border-left: 3px solid #0d7d6c;
+  background: #f5f9f8;
+  color: #3d4c5c;
+}
+
+.tg-legal-content table {
+  width: 100%;
+  margin-bottom: 18px;
+  border-collapse: collapse;
+}
+
+.tg-legal-content th,
+.tg-legal-content td {
+  border: 1px solid #e3e9ef;
+  padding: 10px 12px;
+  text-align: left;
+}
+
+.tg-legal-content img {
+  max-width: 100%;
+  height: auto;
+}
+
+.tg-legal-related a {
+  color: #0d7d6c;
+}
+
+@media (max-width: 767px) {
+  .tg-legal-document {
+    padding: 24px 20px;
+    border-radius: 10px;
+  }
+
+  .tg-legal-header h1 {
+    font-size: 26px;
+  }
+
+  .tg-legal-content {
+    font-size: 15px;
+  }
+}
+
+/* The contact page's social row reuses the footer icon component on a light
+   background, so it needs its own colours rather than the footer's white. */
+.tg-contact-social a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #f1f5f9;
+  color: #0f2742;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.tg-contact-social a:hover,
+.tg-contact-social a:focus-visible {
+  background: #0d7d6c;
+  color: #fff;
+}
+
+/* The theme capitalizes footer and contact list text, which turns an address
+   like info@example.com into "Info@Example.Com". Email addresses, phone
+   numbers and URLs are shown exactly as the admin entered them. */
+.tg-team-details-contact a[href^="mailto:"],
+.tg-team-details-contact a[href^="tel:"],
+.tg-footer-info a[href^="mailto:"],
+.tg-footer-info a[href^="tel:"],
+.tg-footer-info a[href^="https://wa.me"] {
+  text-transform: none;
+}

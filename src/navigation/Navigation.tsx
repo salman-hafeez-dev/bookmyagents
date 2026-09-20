@@ -15,6 +15,7 @@ import BlogOneMain from '../pages/BlogOneMain';
 import BlogTwoMain from '../pages/BlogTwoMain';
 import BlogDetailsMain from '../pages/BlogDetailsMain';
 import ContactMain from '../pages/ContactMain';
+import LegalPageMain from '../pages/LegalPageMain';
 import ErrorMain from '../pages/ErrorMain';
 import DashboardMain from '../pages/DashboardMain';
 import AgentDashboardMain from '../pages/AgentDashboardMain';
@@ -40,6 +41,13 @@ const AppNavigation = () => {
         <Route path="/pricing" element={<PricingMain />} />
         <Route path="/faq" element={<FaqMain />} />
         <Route path="/contact" element={<ContactMain />} />
+
+        {/* Legal / policy pages. /legal/:slug serves whatever an admin has
+            published, so a new policy needs no route; /terms and /privacy are
+            kept as stable, linkable shortcuts to the two standard ones. */}
+        <Route path="/terms" element={<LegalPageMain slug="terms-and-conditions" fallbackTitle="Terms & Conditions" />} />
+        <Route path="/privacy" element={<LegalPageMain slug="privacy-policy" fallbackTitle="Privacy Policy" />} />
+        <Route path="/legal/:slug" element={<LegalPageMain />} />
 
         {/* Content */}
         <Route path="/blog-grid" element={<BlogOneMain />} />

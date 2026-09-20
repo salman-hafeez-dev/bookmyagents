@@ -16,7 +16,9 @@ const schema = yup
    .object({
       user_name: yup.string().required().label("Name"),
       user_email: yup.string().required().email().label("Email"),
-      web: yup.string().required().label("Website"),
+      // Optional: a phone number or website makes replying easier, but
+      // nobody should be blocked from sending a message for lacking one.
+      web: yup.string().default("").label("Phone or website"),
       message: yup.string().required().label("Message"),
    })
    .required();
@@ -54,7 +56,7 @@ const ContactForm = () => {
                <p className="form_error">{errors.user_email?.message}</p>
             </div>
             <div className="col-lg-12 mb-25">
-               <input className="input" type="text" {...register("web")} placeholder="Website" />
+               <input className="input" type="text" {...register("web")} placeholder="Phone or website (optional)" />
                <p className="form_error">{errors.web?.message}</p>
             </div>
             <div className="col-lg-12">
