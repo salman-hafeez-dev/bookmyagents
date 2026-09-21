@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import Pager from '../dashboard-admin/Pager';
 import { TableSkeleton } from '../dashboard-admin/Skeleton';
 import Input from './Input';
@@ -18,15 +18,34 @@ export interface DataTableColumn<Row> {
   width?: string;
 }
 
+/**
+ * Paging config.
+ *
+ * Two modes, picked by what you pass:
+ *
+ *  - **Client-side** (the default). Omit `page`/`onChange` and the table pages
+ *    the rows it was given. Every table gets paging without the caller wiring
+ *    anything, which is the point — a list that is short today is not short
+ *    after six months of real data.
+ *
+ *  - **Server-side.** Pass `page`, `pages`, `total` and `onChange` and the
+ *    table stops slicing and defers to you, for endpoints that page in the API.
+ */
 export interface DataTablePagination {
-  page: number;
-  pages: number;
-  total: number;
-  limit: number;
-  onChange: (page: number) => void;
+  /** Rows per page. Applies to both modes; defaults to 10. */
+  pageSize?: number;
   /** What is being counted, so the summary reads naturally. */
   noun?: string;
+
+  /* --- server-side only; supply all four together --- */
+  page?: number;
+  pages?: number;
+  total?: number;
+  limit?: number;
+  onChange?: (page: number) => void;
 }
+
+const DEFAULT_PAGE_SIZE = 10;
 
 export interface DataTableProps<Row> {
   columns: DataTableColumn<Row>[];
@@ -51,7 +70,11 @@ export interface DataTableProps<Row> {
     keys?: (keyof Row)[];
   };
 
-  pagination?: DataTablePagination;
+  /**
+   * Paging. On by default — pass `false` to turn it off for a table that is
+   * genuinely fixed-length, such as the seven rows of a business-hours editor.
+   */
+  pagination?: DataTablePagination | false;
 
   loading?: boolean;
   /** Shown when there are no rows and nothing is loading. */
@@ -96,12 +119,60 @@ function DataTable<Row>({
   const isControlled = search?.onChange !== undefined;
   const query = isControlled ? (search?.value ?? '') : internalQuery;
 
-  const visibleRows = useMemo(() => {
+  const filteredRows = useMemo(() => {
     if (isControlled || !search?.keys || !query.trim()) return rows;
     const needle = query.trim().toLowerCase();
     return rows.filter((row) =>
       search.keys!.some((key) => String(row[key] ?? '').toLowerCase().includes(needle)));
   }, [rows, query, isControlled, search]);
+
+  // --- paging -------------------------------------------------------------
+  // Server-side when the caller drives it, client-side otherwise. Paging is on
+  // unless explicitly turned off, so a table never grows unbounded just
+  // because nobody remembered to add it.
+  const pagingOff = pagination === false;
+  const pagingConfig = pagination === false ? undefined : pagination;
+  const isServerPaged = Boolean(pagingConfig?.onChange && pagingConfig?.page);
+  const pageSize = pagingConfig?.pageSize ?? pagingConfig?.limit ?? DEFAULT_PAGE_SIZE;
+
+  const [clientPage, setClientPage] = useState(1);
+
+  const clientPages = pagingOff || isServerPaged
+    ? 1
+    : Math.max(1, Math.ceil(filteredRows.length / pageSize));
+
+  // Searching while on page 3 would otherwise land on an empty page, and so
+  // would a refetch that returns fewer rows than before.
+  useEffect(() => {
+    setClientPage((current) => Math.min(current, clientPages));
+  }, [clientPages]);
+
+  useEffect(() => {
+    setClientPage(1);
+  }, [query]);
+
+  const visibleRows = useMemo(() => {
+    if (pagingOff || isServerPaged) return filteredRows;
+    const start = (clientPage - 1) * pageSize;
+    return filteredRows.slice(start, start + pageSize);
+  }, [filteredRows, clientPage, pageSize, pagingOff, isServerPaged]);
+
+  // What the Pager is handed, whichever mode is in play.
+  const pagerProps = pagingOff ? null : isServerPaged ? {
+    page: pagingConfig!.page!,
+    pages: pagingConfig!.pages ?? 1,
+    total: pagingConfig!.total ?? filteredRows.length,
+    limit: pagingConfig!.limit ?? pageSize,
+    onChange: pagingConfig!.onChange!,
+    noun: pagingConfig?.noun,
+  } : {
+    page: clientPage,
+    pages: clientPages,
+    total: filteredRows.length,
+    limit: pageSize,
+    onChange: setClientPage,
+    noun: pagingConfig?.noun,
+  };
 
   const hasHeader = Boolean(title || actions || search || toolbar);
 
@@ -143,7 +214,7 @@ function DataTable<Row>({
         <div className="ui-table-state">{error}</div>
       ) : loading ? (
         <TableSkeleton rows={5} columns={Math.min(columns.length, 6)} />
-      ) : visibleRows.length === 0 ? (
+      ) : filteredRows.length === 0 ? (
         <div className="ui-table-state ui-table-empty">
           {emptyState?.icon && <i className={emptyState.icon} aria-hidden="true" />}
           <h5>{emptyState?.title || 'Nothing to show yet'}</h5>
@@ -194,16 +265,12 @@ function DataTable<Row>({
         </div>
       )}
 
-      {pagination && pagination.pages > 1 && !loading && !error && (
+      {/* Rendered whenever there are rows, not only when there is more than one
+          page: "Showing 1–4 of 4 categories" is worth having on its own, and
+          Pager hides its own controls at a single page. */}
+      {pagerProps && pagerProps.total > 0 && !loading && !error && (
         <div className="ui-table-footer">
-          <Pager
-            page={pagination.page}
-            pages={pagination.pages}
-            total={pagination.total}
-            limit={pagination.limit}
-            onChange={pagination.onChange}
-            noun={pagination.noun}
-          />
+          <Pager {...pagerProps} />
         </div>
       )}
     </div>

@@ -211,6 +211,7 @@ const LegalPagesManagement: React.FC = () => {
           columns={columns}
           rows={pages}
           rowKey={(page) => page._id}
+          pagination={{ noun: 'pages' }}
           title="Legal Pages"
           loading={loading}
           search={{ placeholder: 'Search by title or URL…', keys: ['title', 'slug'] }}

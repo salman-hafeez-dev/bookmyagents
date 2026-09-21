@@ -115,6 +115,7 @@ const CategoryManagement: React.FC = () => {
             columns={columns}
             rows={categories}
             rowKey={(category) => category._id}
+            pagination={{ noun: 'categories' }}
             title="Service Categories"
             loading={loading}
             search={{ placeholder: 'Search categories…', keys: ['name', 'slug'] }}

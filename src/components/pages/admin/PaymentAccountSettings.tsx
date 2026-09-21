@@ -192,6 +192,7 @@ const PaymentAccountSettings: React.FC = () => {
           columns={columns}
           rows={accounts}
           rowKey={(account, index) => account._id || `new-${index}`}
+          pagination={{ noun: 'accounts' }}
           title="Payment Account"
           loading={loading}
           search={{ placeholder: 'Search by bank or account title…', keys: ['bankName', 'accountTitle'] }}
