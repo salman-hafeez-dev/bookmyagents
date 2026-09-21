@@ -22,11 +22,32 @@ import { extractApiError } from '../../../services/agentProfileService';
 import SubscriptionRequestsPanel from '../admin/SubscriptionRequestsPanel';
 import AdminDashboardShell from '../../dashboard-admin/AdminDashboardShell';
 import { type AdminNavItem } from '../../dashboard-admin/AdminSidebar';
-import { TableSkeleton } from '../../dashboard-admin/Skeleton';
+import { Badge, DataTable, IconButton, type BadgeTone, type DataTableColumn } from '../../ui';
 import { useGetUsersQuery, useGetSubscriptionsQuery } from '../../../redux/api/dashboardApi';
 
 type ActiveModule = 'users' | 'subscriptions' | 'subscription-requests' | 'payments' | 'payment-account' | 'leads' | 'reviews' | 'agents' | 'categories' | 'blogs' | 'site-settings' | 'legal-pages';
 type UserRoleFilter = 'all' | 'admin' | 'agent' | 'user';
+
+
+interface UserStatsShape { totalUsers: number }
+
+const ROLE_TABS: {
+  key: UserRoleFilter;
+  label: string;
+  icon: string;
+  count: (users: User[], stats: UserStatsShape) => number;
+}[] = [
+  { key: 'all',   label: 'All Users', icon: 'fas fa-users',       count: (_u, stats) => stats.totalUsers },
+  { key: 'admin', label: 'Admins',    icon: 'fas fa-shield-alt',  count: (u) => u.filter((x) => x.role === 'admin').length },
+  { key: 'agent', label: 'Agents',    icon: 'fas fa-user-tie',    count: (u) => u.filter((x) => x.role === 'agent').length },
+  { key: 'user',  label: 'Users',     icon: 'fas fa-user',        count: (u) => u.filter((x) => x.role === 'user' || !x.role).length },
+];
+
+const ROLE_TONES: Record<string, BadgeTone> = {
+  admin: 'danger',
+  agent: 'warning',
+  user: 'primary',
+};
 
 const DashboardArea: React.FC = () => {
   const { user } = useAuth();
@@ -263,6 +284,163 @@ const DashboardArea: React.FC = () => {
     },
   ];
 
+  const userColumns: DataTableColumn<User>[] = [
+    {
+      key: 'name',
+      header: 'Name',
+      render: (userItem) => <span className="fw-semibold">{userItem.fullName}</span>,
+    },
+    {
+      key: 'email',
+      header: 'Email',
+      render: (userItem) => <span className="text-muted">{userItem.email}</span>,
+    },
+    {
+      key: 'role',
+      header: 'Role',
+      nowrap: true,
+      render: (userItem) => (
+        <Badge tone={ROLE_TONES[userItem.role || 'user'] || 'neutral'}>
+          {userItem.role || 'user'}
+        </Badge>
+      ),
+    },
+    {
+      key: 'status',
+      header: 'Status',
+      nowrap: true,
+      render: (userItem) => (userItem.isActive
+        ? <Badge tone="success" dot>Active</Badge>
+        : <Badge tone="neutral" dot>Inactive</Badge>),
+    },
+    {
+      key: 'subscription',
+      header: 'Agent subscription',
+      nowrap: true,
+      hideBelow: 'lg',
+      render: (userItem) => {
+        if (userItem.role !== 'agent') return <span className="text-muted">—</span>;
+        return userItem.subscription
+          ? <Badge tone="info">{userItem.subscription.name}</Badge>
+          : <Badge tone="warning">No subscription</Badge>;
+      },
+    },
+    {
+      key: 'created',
+      header: 'Created',
+      nowrap: true,
+      hideBelow: 'md',
+      render: (userItem) => (
+        <span className="text-muted">
+          {userItem.createdAt ? new Date(userItem.createdAt).toLocaleDateString() : '—'}
+        </span>
+      ),
+    },
+    {
+      key: 'actions',
+      header: '',
+      align: 'right',
+      width: '168px',
+      render: (userItem) => (
+        <div className="ui-actions">
+          {userItem.role !== 'admin' && (
+            <IconButton
+              icon={userItem.isActive ? 'far fa-circle-pause' : 'far fa-circle-play'}
+              label={userItem.isActive ? 'Deactivate user' : 'Activate user'}
+              tone={userItem.isActive ? 'warning' : 'success'}
+              onClick={() => setStatusTarget(userItem)}
+            />
+          )}
+          {userItem.role === 'agent' && (
+            <IconButton
+              icon="far fa-credit-card"
+              label="Manage subscription"
+              onClick={() => handleAssignSubscription(userItem)}
+            />
+          )}
+          {userItem._id !== user?._id && (
+            <IconButton
+              icon="far fa-key"
+              label="Change password"
+              onClick={() => setPasswordTarget(userItem)}
+            />
+          )}
+          {/* Administrators are never deletable — the API enforces this too,
+              so a crafted request can't get past a disabled button. */}
+          <IconButton
+            icon="far fa-trash-can"
+            label={userItem.role === 'admin'
+              ? 'System administrators cannot be deleted'
+              : 'Delete user'}
+            tone="danger"
+            disabled={userItem.role === 'admin'}
+            onClick={() => setDeleteTarget(userItem)}
+          />
+        </div>
+      ),
+    },
+  ];
+
+  const planColumns: DataTableColumn<Subscription>[] = [
+    { key: 'name', header: 'Name', render: (plan) => <span className="fw-semibold">{plan.name}</span> },
+    {
+      key: 'price',
+      header: 'Price',
+      nowrap: true,
+      // Currency comes from the plan rather than a hardcoded "$": every price
+      // on this platform is PKR.
+      render: (plan) => `PKR ${plan.price.toLocaleString()}`,
+    },
+    {
+      key: 'categoryLimit',
+      header: 'Category limit',
+      align: 'center',
+      hideBelow: 'md',
+      render: (plan) => plan.categoryLimit ?? 1,
+    },
+    {
+      key: 'features',
+      header: 'Features',
+      nowrap: true,
+      hideBelow: 'lg',
+      render: (plan) => `${plan.features.length} features`,
+    },
+    {
+      key: 'popular',
+      header: 'Popular',
+      nowrap: true,
+      render: (plan) => (plan.isPopular
+        ? <Badge tone="warning" dot>Popular</Badge>
+        : <Badge tone="neutral" dot>Standard</Badge>),
+    },
+    {
+      key: 'created',
+      header: 'Created',
+      nowrap: true,
+      hideBelow: 'lg',
+      render: (plan) => (
+        <span className="text-muted">
+          {plan.createdAt ? new Date(plan.createdAt).toLocaleDateString() : '—'}
+        </span>
+      ),
+    },
+    {
+      key: 'actions',
+      header: '',
+      align: 'right',
+      width: '64px',
+      render: (plan) => (
+        <div className="ui-actions">
+          <IconButton
+            icon="far fa-pen-to-square"
+            label="Edit plan"
+            onClick={() => { setEditingSubscription(plan); setShowEditModal(true); }}
+          />
+        </div>
+      ),
+    },
+  ];
+
   return (
     <AdminDashboardShell
       // title={`Welcome back, ${user?.fullName || 'User'}!`}
@@ -315,180 +493,44 @@ const DashboardArea: React.FC = () => {
             </div>
           </div>
 
-          {/* Role Filter Tabs */}
           <div className="dashboard-card mb-30">
-            <div className="card-header">
-              <div className='d-flex justify-content-between align-items-center'>
-                <h4>User Management</h4>
-                <div className="">
-                  <div className="">
-                    <input
-                      type="text"
-                      className="form-control"
-                      placeholder="Search users..."
-                      value={userFilters.search}
-                      onChange={(e) => setUserFilters({ ...userFilters, search: e.target.value })}
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
             <div className="card-body">
-
-              {/* Role Filter Tabs */}
-              <div className="role-filter-tabs">
+              {/* Role stays a row of tabs rather than a dropdown: each carries
+                  a count, which is the reason to look at this screen. */}
+              <div className="role-filter-tabs mb-20">
                 <div className="nav nav-pills justify-content-center">
-                  <button
-                    className={`nav-link ${roleFilter === 'all' ? 'active' : ''}`}
-                    onClick={() => handleRoleFilterChange('all')}
-                  >
-                    <i className="fas fa-users me-2"></i>
-                    All Users ({userStats.totalUsers})
-                  </button>
-                  <button
-                    className={`nav-link ${roleFilter === 'admin' ? 'active' : ''}`}
-                    onClick={() => handleRoleFilterChange('admin')}
-                  >
-                    <i className="fas fa-shield-alt me-2 role-icon-admin"></i>
-                    Admins ({users.filter(u => u.role === 'admin').length})
-                  </button>
-                  <button
-                    className={`nav-link ${roleFilter === 'agent' ? 'active' : ''}`}
-                    onClick={() => handleRoleFilterChange('agent')}
-                  >
-                    <i className="fas fa-user-tie me-2 role-icon-agent"></i>
-                    Agents ({users.filter(u => u.role === 'agent').length})
-                    {/* <small className="d-block text-muted">With Subscriptions</small> */}
-                  </button>
-                  <button
-                    className={`nav-link ${roleFilter === 'user' ? 'active' : ''}`}
-                    onClick={() => handleRoleFilterChange('user')}
-                  >
-                    <i className="fas fa-user me-2 role-icon-user"></i>
-                    Users ({users.filter(u => u.role === 'user' || !u.role).length})
-                  </button>
+                  {ROLE_TABS.map((tab) => (
+                    <button
+                      key={tab.key}
+                      type="button"
+                      className={`nav-link ${roleFilter === tab.key ? 'active' : ''}`}
+                      onClick={() => handleRoleFilterChange(tab.key)}
+                    >
+                      <i className={`${tab.icon} me-2`}></i>
+                      {tab.label} ({tab.count(users, userStats)})
+                    </button>
+                  ))}
                 </div>
               </div>
 
-              <div className='my-2'>
-                {userLoading ? (
-                  <TableSkeleton rows={6} columns={7} />
-                ) : (
-                  <div className="table-responsive">
-                    <table className="table table-striped">
-                      <thead>
-                        <tr>
-                          <th>Name</th>
-                          <th>Email</th>
-                          <th>Role</th>
-                          <th>Status</th>
-                          <th>Agent Subscription</th>
-                          <th>Created</th>
-                          <th>Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {Array.isArray(getFilteredUsers()) && getFilteredUsers().map((userItem) => (
-                          <tr key={userItem.id}>
-                            <td>{userItem.fullName}</td>
-                            <td>{userItem.email}</td>
-                            <td>
-                              <span className={`badge ${userItem.role === 'admin' ? 'bg-danger' :
-                                userItem.role === 'agent' ? 'bg-warning' : 'bg-primary'
-                                }`}>
-                                {userItem.role || 'user'}
-                              </span>
-                            </td>
-                            <td>
-                              <span className={`badge ${userItem.isActive ? 'bg-success' : 'bg-secondary'}`}>
-                                {userItem.isActive ? 'Active' : 'Inactive'}
-                              </span>
-                            </td>
-                            <td>
-                              {userItem.role === 'agent' ? (
-                                userItem.subscription ? (
-                                  <div className="subscription-info">
-                                    <span className="badge bg-info">
-                                      <i className="fas fa-check-circle me-1"></i>
-                                      {userItem.subscription.name}
-                                    </span>
-                                    {/* <div className="subscription-price">
-                                          <i className="fas fa-dollar-sign me-1"></i>
-                                          {userItem.subscription.price}/{userItem.subscription.duration}
-                                        </div> */}
-                                  </div>
-                                ) : (
-                                  <span className="badge bg-warning">
-                                    <i className="fas fa-exclamation-triangle me-1"></i>
-                                    No Subscription
-                                  </span>
-                                )
-                              ) : (
-                                <span className="text-muted">
-                                  <i className="fas fa-minus me-1"></i>
-                                  N/A
-                                </span>
-                              )}
-                            </td>
-                            <td>{userItem.createdAt ? new Date(userItem.createdAt).toLocaleDateString() : 'N/A'}</td>
-                            <td>
-                              <div className="btn-group" role="group">
-                                {userItem.role !== 'admin' && <button
-                                  className={`btn btn-sm ${userItem.isActive ? 'btn-warning' : 'btn-success'}`}
-                                  onClick={() => setStatusTarget(userItem)}
-                                  title={userItem.isActive ? 'Deactivate User' : 'Activate User'}
-                                >
-                                  <i className={`fas ${userItem.isActive ? 'fa-user-times' : 'fa-user-plus'}`}></i>
-                                </button>}
-                                {userItem.role === 'agent' && (
-                                  <button
-                                    className="btn btn-sm btn-primary"
-                                    onClick={() => handleAssignSubscription(userItem)}
-                                    title="Manage Subscription"
-                                  >
-                                    <i className="fas fa-cog"></i>
-                                  </button>
-                                )}
-                                {userItem._id !== user?._id && (
-                                  <button
-                                    className="btn btn-sm btn-secondary"
-                                    onClick={() => setPasswordTarget(userItem)}
-                                    title="Change Password"
-                                  >
-                                    <i className="fas fa-key"></i>
-                                  </button>
-                                )}
-                                {/* Administrators are never deletable — the API
-                                    enforces this too, so a crafted request
-                                    can't get past a disabled button. */}
-                                <button
-                                  className="btn btn-sm btn-danger"
-                                  disabled={userItem.role === 'admin'}
-                                  onClick={() => setDeleteTarget(userItem)}
-                                  title={
-                                    userItem.role === 'admin'
-                                      ? 'System administrators cannot be deleted'
-                                      : 'Delete User'
-                                  }
-                                >
-                                  <i className="fas fa-trash"></i>
-                                </button>
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                    {getFilteredUsers().length === 0 && (
-                      <div className="empty-state">
-                        <i className="fas fa-users"></i>
-                        <h5 className="mt-3 mb-2">No Users Found</h5>
-                        <p className="text-muted">No users found for the selected role filter.</p>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
+              <DataTable<User>
+                columns={userColumns}
+                rows={getFilteredUsers()}
+                rowKey={(userItem) => userItem._id || userItem.id || userItem.email}
+                title="User Management"
+                loading={userLoading}
+                search={{
+                  placeholder: 'Search users…',
+                  value: userFilters.search || '',
+                  onChange: (value) => setUserFilters({ ...userFilters, search: value }),
+                }}
+                pagination={{ noun: 'users' }}
+                emptyState={{
+                  icon: 'fas fa-users',
+                  title: 'No users found',
+                  description: 'No users match the selected role filter.',
+                }}
+              />
             </div>
           </div>
         </>
@@ -539,58 +581,22 @@ const DashboardArea: React.FC = () => {
             </div>
           </div>
 
-          {/* Subscriptions Table */}
           <div className="dashboard-card">
-            <div className="card-header">
-              <h4>Subscription Plans</h4>
-            </div>
             <div className="card-body">
-              {subscriptionLoading ? (
-                <TableSkeleton rows={4} columns={7} />
-              ) : (
-                <div className="table-responsive">
-                  <table className="table table-striped">
-                    <thead>
-                      <tr>
-                        <th>Name</th>
-                        <th>Price</th>
-                        <th>Category Limit</th>
-                        <th>Features</th>
-                        <th>Popular</th>
-                        <th>Created</th>
-                        <th>Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {Array.isArray(subscriptions) && subscriptions.map((subscription) => (
-                        <tr key={subscription._id}>
-                          <td>{subscription.name}</td>
-                          <td>${subscription.price}</td>
-                          <td>{subscription.categoryLimit ?? 1}</td>
-                          <td>{subscription.features.length} features</td>
-                          <td>
-                            <span className={`badge ${subscription.isPopular ? 'bg-warning' : 'bg-secondary'}`}>
-                              {subscription.isPopular ? 'Popular' : 'Standard'}
-                            </span>
-                          </td>
-                          <td>{subscription.createdAt ? new Date(subscription.createdAt).toLocaleDateString() : 'N/A'}</td>
-                          <td>
-                            <button
-                              className="btn btn-primary btn-sm"
-                              onClick={() => {
-                                setEditingSubscription(subscription);
-                                setShowEditModal(true);
-                              }}
-                            >
-                              Edit
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
+              <DataTable<Subscription>
+                columns={planColumns}
+                rows={subscriptions}
+                rowKey={(plan) => plan._id}
+                title="Subscription Plans"
+                loading={subscriptionLoading}
+                search={{ placeholder: 'Search plans…', keys: ['name'] }}
+                pagination={{ noun: 'plans' }}
+                emptyState={{
+                  icon: 'fas fa-credit-card',
+                  title: 'No subscription plans',
+                  description: 'Plans appear here once they are created.',
+                }}
+              />
             </div>
           </div>
         </>
