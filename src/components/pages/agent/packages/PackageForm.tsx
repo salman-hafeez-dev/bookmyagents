@@ -10,6 +10,7 @@ import {
 } from '../../../../types/package';
 import { packageService } from '../../../../services/packageService';
 import { showToast, getErrorMessage } from '../../../../utils/toast';
+import { useCurrency } from '../../../../hooks/useCurrency';
 
 interface PackageFormProps {
   // Only the categories this agent's subscription covers. The server enforces
@@ -89,6 +90,7 @@ const PackageForm: React.FC<PackageFormProps> = ({
   onSaved,
   onCancel,
 }) => {
+  const currency = useCurrency();
   const isEdit = Boolean(travelPackage?._id);
 
   // Inclusions/exclusions and images sit outside react-hook-form: they are
@@ -200,7 +202,9 @@ const PackageForm: React.FC<PackageFormProps> = ({
       // Sent as empty strings so the API knows to clear a date that was set.
       departureDate: values.departureDate || undefined,
       returnDate: values.returnDate || undefined,
-      currency: travelPackage?.currency || 'PKR',
+      // A new package is priced in the site currency; an existing one keeps
+      // whatever it was created with.
+      currency: travelPackage?.currency || currency.code,
       inclusions,
       exclusions,
       images,
@@ -317,7 +321,7 @@ const PackageForm: React.FC<PackageFormProps> = ({
           </div>
 
           <div className="col-md-4">
-            <label className="form-label">Price (PKR) <span className="text-danger">*</span></label>
+            <label className="form-label">Price ({currency.code}) <span className="text-danger">*</span></label>
             <input type="number" className="form-control" placeholder="385000" {...register('price')} />
             {errors.price && <small className="text-danger">{errors.price.message}</small>}
           </div>

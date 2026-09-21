@@ -2,11 +2,11 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { type AgentResult } from '../../types/search';
 import StarRating from '../marketplace/StarRating';
+import { useCurrency } from '../../hooks/useCurrency';
 
-const money = (amount: number, currency: string) =>
-  `${currency} ${new Intl.NumberFormat('en-PK').format(amount)}`;
-
-const AgentResultCard: React.FC<{ result: AgentResult }> = ({ result }) => (
+const AgentResultCard: React.FC<{ result: AgentResult }> = ({ result }) => {
+  const currency = useCurrency();
+  return (
   <div className="bma-result-card p-3 mb-3">
     <div className="row g-3">
       <div className="col-md-2 col-3">
@@ -89,7 +89,7 @@ const AgentResultCard: React.FC<{ result: AgentResult }> = ({ result }) => (
                   <i className="fas fa-angle-right me-2 text-primary"></i>
                   {item.title}
                 </Link>
-                <span className="text-muted"> — {money(item.price, item.currency)}</span>
+                <span className="text-muted"> — {currency.format(item.price, item.currency)}</span>
               </li>
             ))}
           </ul>
@@ -102,7 +102,7 @@ const AgentResultCard: React.FC<{ result: AgentResult }> = ({ result }) => (
             <>
               <div className="small text-muted">Packages from</div>
               <div className="h5 bma-price mb-1">
-                {money(result.startingPrice, result.topPackages[0]?.currency || 'PKR')}
+                {currency.format(result.startingPrice, result.topPackages[0]?.currency)}
               </div>
             </>
           )}
@@ -116,6 +116,7 @@ const AgentResultCard: React.FC<{ result: AgentResult }> = ({ result }) => (
       </div>
     </div>
   </div>
-);
+  );
+};
 
 export default AgentResultCard;

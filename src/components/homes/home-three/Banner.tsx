@@ -3,6 +3,7 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, EffectFade, Autoplay } from "swiper/modules";
 import { Link } from "react-router-dom";
 import Button from '../../common/Button';
+import { useCurrency } from '../../../hooks/useCurrency';
 
 // WebP, and roughly a third smaller than the JPEGs they replace. The .jpg
 // originals are kept in the repo but nothing references them.
@@ -31,6 +32,7 @@ const setting = {
 };
 
 const Banner = () => {
+  const currency = useCurrency();
    // Only the first slide is visible on load; the other four used to download
    // immediately anyway, costing well over a megabyte before anyone saw
    // anything. They are fetched once the page is idle instead — the carousel
@@ -85,7 +87,7 @@ const Banner = () => {
                            <div className="tg-hero-price-wrap mb-35 d-flex align-items-center justify-content-center  wow fadeInUp" data-wow-delay=".7s" data-wow-duration="1.3s">
                               <p className="mr-15">Booking Start From</p>
                               <div className="tg-hero-price d-flex">
-                                 <span className="hero-dolar">PKR</span>
+                                 <span className="hero-dolar">{currency.code}</span>
                                  <span className="hero-price">5000</span>
                                  {/* <span className="night">/night</span> */}
                               </div>

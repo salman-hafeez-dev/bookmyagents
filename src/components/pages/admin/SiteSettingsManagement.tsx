@@ -5,6 +5,7 @@ import { siteSettingsService } from '../../../services/siteSettingsService';
 import { extractApiError } from '../../../services/agentProfileService';
 import { showToast } from '../../../utils/toast';
 import { siteApi } from '../../../redux/api/siteApi';
+import { DEFAULT_CURRENCY, SUPPORTED_CURRENCIES } from '../../../utils/currency';
 import {
   DAYS_OF_WEEK,
   SOCIAL_PLATFORMS,
@@ -16,6 +17,7 @@ import {
 
 const EMPTY: SiteSettings = {
   businessName: '',
+  currency: DEFAULT_CURRENCY,
   tagline: '',
   description: '',
   phones: [],
@@ -244,6 +246,33 @@ const SiteSettingsManagement: React.FC = () => {
             error: errors.description,
             help: 'Used as the default blurb in the footer and as a fallback meta description.',
           })}
+
+          <div className="row">
+            <div className="col-lg-6">
+              <div className="mb-20">
+                <label htmlFor="ss-currency" className="form-label fw-semibold">
+                  Currency<span className="text-danger ms-1">*</span>
+                </label>
+                <select
+                  id="ss-currency"
+                  className={`form-select${errors.currency ? ' is-invalid' : ''}`}
+                  value={form.currency || DEFAULT_CURRENCY}
+                  onChange={(event) => set('currency', event.target.value)}
+                  disabled={saving}
+                >
+                  {SUPPORTED_CURRENCIES.map((currency) => (
+                    <option key={currency.code} value={currency.code}>{currency.label}</option>
+                  ))}
+                </select>
+                {errors.currency && <div className="invalid-feedback">{errors.currency}</div>}
+                <small className="text-muted d-block mt-1">
+                  Every price on the site is shown in this currency. Payments, invoices and
+                  quotations that already exist keep the currency they were created in —
+                  changing this never rewrites what somebody was charged.
+                </small>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 

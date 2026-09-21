@@ -5,6 +5,7 @@ import { type User } from '../../../services/authService';
 import { CardSkeleton } from '../../dashboard-admin/Skeleton';
 import Modal from '../../common/Modal';
 import { useConfirm } from '../../../contexts/ConfirmContext';
+import { useCurrency } from '../../../hooks/useCurrency';
 
 interface UserSubscriptionModalProps {
   user: User | null;
@@ -19,6 +20,7 @@ const UserSubscriptionModal: React.FC<UserSubscriptionModalProps> = ({
   onClose,
   onSubscriptionAssigned
 }) => {
+  const currency = useCurrency();
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [currentSubscription, setCurrentSubscription] = useState<any>(null);
   const [loading, setLoading] = useState(false);
@@ -211,7 +213,7 @@ const UserSubscriptionModal: React.FC<UserSubscriptionModalProps> = ({
                       <div className="plan-info">
                         <h6 className="plan-name">{currentSubscription.name}</h6>
                         <p className="plan-price">
-                          <span className="currency">$</span>
+                          <span className="currency">{currency.symbol}</span>
                           <span className="amount">{currentSubscription.price}</span>
                           <span className="period">/{currentSubscription.duration}</span>
                         </p>
@@ -310,7 +312,7 @@ const UserSubscriptionModal: React.FC<UserSubscriptionModalProps> = ({
 
                         <div className="plan-pricing">
                           <div className="price-display">
-                            <span className="currency">$</span>
+                            <span className="currency">{currency.symbol}</span>
                             <span className="amount">{subscription.price}</span>
                             <span className="period">/{subscription.duration}</span>
                           </div>

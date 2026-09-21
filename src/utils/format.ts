@@ -1,7 +1,9 @@
 // Display formatting shared by the public marketplace pages.
 
-export const formatMoney = (amount: number, currency = 'PKR') =>
-  `${currency} ${new Intl.NumberFormat('en-PK').format(amount)}`;
+// Money formatting lives in utils/currency.ts, which is aware of the
+// admin-configured site currency. Re-exported here so the existing call sites
+// keep working.
+export { formatMoney } from './currency';
 
 export const formatDate = (value?: string) => {
   if (!value) return null;

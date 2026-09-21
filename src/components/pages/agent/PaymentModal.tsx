@@ -4,9 +4,10 @@ import { paymentService } from '../../../services/paymentService';
 import { extractApiError } from '../../../services/agentProfileService';
 import { showToast } from '../../../utils/toast';
 import { formatFileSize } from '../../../utils/formatFileSize';
-import { formatAmount, type PaymentAccount } from '../../../types/payment';
+import { type PaymentAccount } from '../../../types/payment';
 import { type Subscription } from '../../../services/subscriptionService';
 import { useConfirm } from '../../../contexts/ConfirmContext';
+import { useCurrency } from '../../../hooks/useCurrency';
 
 interface PaymentModalProps {
   plan: Subscription;
@@ -57,6 +58,7 @@ const AccountRow: React.FC<{ label: string; value?: string; copyable?: boolean }
 };
 
 const PaymentModal: React.FC<PaymentModalProps> = ({ plan, onClose, onSubmitted }) => {
+  const currency = useCurrency();
   const [account, setAccount] = useState<PaymentAccount | null>(null);
   const [loadingAccount, setLoadingAccount] = useState(true);
   const [transactionNumber, setTransactionNumber] = useState('');
@@ -174,7 +176,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ plan, onClose, onSubmitted 
         </span>
         <span className="text-end">
           <span className="d-block text-muted small">Amount due</span>
-          <strong className="fs-5">{formatAmount(plan.price, account?.currency || 'PKR')}</strong>
+          <strong className="fs-5">{currency.format(plan.price, account?.currency)}</strong>
         </span>
       </div>
 

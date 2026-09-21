@@ -6,10 +6,11 @@ import { extractApiError } from '../../../services/agentProfileService';
 import { showToast } from '../../../utils/toast';
 import { type PaymentAccount } from '../../../types/payment';
 import { useConfirm } from '../../../contexts/ConfirmContext';
+import { DEFAULT_CURRENCY, SUPPORTED_CURRENCIES } from '../../../utils/currency';
 
 const EMPTY: PaymentAccount = {
   bankName: '', accountTitle: '', accountNumber: '', iban: '',
-  instructions: '', currency: 'PKR', isActive: true,
+  instructions: '', currency: DEFAULT_CURRENCY, isActive: true,
 };
 
 // Admin management of the bank details agents are shown in the payment modal.
@@ -45,7 +46,7 @@ const PaymentAccountSettings: React.FC = () => {
     setErrors({});
   };
 
-  const change = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const change = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type, checked } = event.target as HTMLInputElement;
     setForm((previous) => ({ ...previous, [name]: type === 'checkbox' ? checked : value }));
     setErrors((previous) => (previous[name] ? { ...previous, [name]: '' } : previous));
@@ -228,7 +229,27 @@ const PaymentAccountSettings: React.FC = () => {
           {field('accountTitle', 'Account title', true, { placeholder: 'Account holder name' })}
           {field('accountNumber', 'Account number', true, { placeholder: '01234567890123' })}
           {field('iban', 'IBAN', false, { placeholder: 'PK36SCBL0000001123456702' })}
-          {field('currency', 'Currency', true, { placeholder: 'PKR', maxLength: 3 })}
+          {/* A picker rather than free text: this used to be a 3-character
+              input, so a typo produced an account labelled in a currency that
+              does not exist. */}
+          <div className="mb-20">
+            <label htmlFor="pa-currency" className="form-label fw-semibold">
+              Currency<span className="text-danger ms-1">*</span>
+            </label>
+            <select
+              id="pa-currency"
+              name="currency"
+              className={`form-select${errors.currency ? ' is-invalid' : ''}`}
+              value={form.currency || DEFAULT_CURRENCY}
+              onChange={change}
+              disabled={saving}
+            >
+              {SUPPORTED_CURRENCIES.map((option) => (
+                <option key={option.code} value={option.code}>{option.label}</option>
+              ))}
+            </select>
+            {errors.currency && <div className="invalid-feedback">{errors.currency}</div>}
+          </div>
 
           <div className="mb-20">
             <label htmlFor="pa-instructions" className="form-label fw-semibold">Payment instructions</label>

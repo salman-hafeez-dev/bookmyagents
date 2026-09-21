@@ -1,3 +1,4 @@
+import { formatMoney } from '../utils/currency';
 export type PaymentStatus = 'pending' | 'verified' | 'rejected';
 export type PaymentMethod = 'bank_transfer';
 
@@ -106,8 +107,15 @@ export interface AdminPaymentFilters {
   limit?: number;
 }
 
-// Amounts are stored in minor-unit-free integers (PKR has no subunit in
-// practice here), so this is a plain grouped format rather than a currency
-// conversion.
-export const formatAmount = (amount: number, currency = 'PKR'): string =>
-  `${currency === 'PKR' ? 'Rs.' : currency} ${amount.toLocaleString('en-PK')}`;
+/**
+ * @deprecated Use `useCurrency().format` so the site currency is applied, or
+ * `formatMoney` directly when you already hold the record's own currency.
+ *
+ * Kept as a thin alias because payments, invoices and quotations all carry
+ * their own currency and pass it explicitly — those call sites were already
+ * correct. It now delegates rather than holding a second formatting rule: it
+ * used to render "Rs. 5,000" while the marketplace rendered "PKR 5,000" for
+ * the same amount.
+ */
+export const formatAmount = (amount: number, currency?: string): string =>
+  formatMoney(amount, currency);

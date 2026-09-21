@@ -5,14 +5,16 @@ import PaymentDetailsModal from '../../common/PaymentDetailsModal';
 import PaymentStatusBadge from '../../common/PaymentStatusBadge';
 import { Badge, DataTable, IconButton, Textarea, type DataTableColumn } from '../../ui';
 import ConfirmationModal from '../../common/ConfirmationModal';
-import { formatAmount, type Payment } from '../../../types/payment';
+import { type Payment } from '../../../types/payment';
 import { useConfirm } from '../../../contexts/ConfirmContext';
+import { useCurrency } from '../../../hooks/useCurrency';
 
 // Admin view of pending subscription requests. Approving here calls the
 // same assignSubscriptionToUser path the existing direct-assign endpoint
 // uses — this panel is the review gate in front of it, not a parallel
 // mechanism.
 const SubscriptionRequestsPanel: React.FC = () => {
+  const currency = useCurrency();
   const [requests, setRequests] = useState<SubscriptionRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [actingId, setActingId] = useState<string | null>(null);
@@ -133,9 +135,9 @@ const SubscriptionRequestsPanel: React.FC = () => {
         // The snapshot, not the plan's current price — a later price edit must
         // not rewrite what was charged.
         return payment
-          ? formatAmount(payment.amount, payment.currency)
+          ? currency.format(payment.amount, payment.currency)
           : req.amountSnapshot !== undefined
-            ? formatAmount(req.amountSnapshot, req.currencySnapshot || 'PKR')
+            ? currency.format(req.amountSnapshot, req.currencySnapshot)
             : <span className="text-muted">—</span>;
       },
     },

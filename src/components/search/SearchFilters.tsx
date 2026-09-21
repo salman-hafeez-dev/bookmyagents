@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { type SearchParams, type SearchType } from '../../types/search';
 import { useCategories } from '../../hooks/useCategories';
+import { useCurrency } from '../../hooks/useCurrency';
 
 interface SearchFiltersProps {
   params: SearchParams;
@@ -12,6 +13,7 @@ interface SearchFiltersProps {
 // searched: price and duration describe an offer, experience describes an
 // agency, so each set only appears for the mode it belongs to.
 const SearchFilters: React.FC<SearchFiltersProps> = ({ params, type, onChange }) => {
+  const currency = useCurrency();
   const categories = useCategories();
 
   // Local copy so typing in a number field doesn't fire a request per keystroke;
@@ -107,7 +109,7 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({ params, type, onChange })
       {type === 'packages' ? (
         <>
           <div className="mb-3">
-            <label className="form-label small text-muted mb-1">Price (PKR)</label>
+            <label className="form-label small text-muted mb-1">Price ({currency.code})</label>
             <div className="row g-2">
               {numberField('Min', 'minPrice', '0')}
               {numberField('Max', 'maxPrice', '500000')}

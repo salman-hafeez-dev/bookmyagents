@@ -240,7 +240,7 @@ const AgentDashboard: React.FC = () => {
               <div className="col-xl-3 col-lg-6 col-md-6 col-sm-12 mb-30">
                 <div className="stats-card">
                   <div className="stats-icon">
-                    <i className="fas fa-dollar-sign"></i>
+                    <i className="fas fa-receipt"></i>
                   </div>
                   <div className="stats-content">
                     <h3>${stats.averagePrice.toFixed(0)}</h3>
