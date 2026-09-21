@@ -1,8 +1,10 @@
 import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { subscriptionService, type Subscription } from "../../../services/subscriptionService";
+import { useCurrency } from '../../../hooks/useCurrency';
 
 const PricingArea = () => {
+  const currency = useCurrency();
    const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
    const [loading, setLoading] = useState(true);
    const [error, setError] = useState<string | null>(null);
@@ -101,7 +103,7 @@ const PricingArea = () => {
                               <p className="mb-25">{subscription.description || "Perfect for your travel needs"}</p>
                            </div>
                            <div className="tg-pricing-price mb-25">
-                              <h2><span>$</span>{subscription.price}</h2>
+                              <h2><span>{currency.symbol}</span>{subscription.price.toLocaleString()}</h2>
                               <span className="dates">/month *</span>
                            </div>
                            <div className="tg-pricing-btn mb-40">

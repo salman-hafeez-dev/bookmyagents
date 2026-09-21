@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import Modal from '../common/Modal';
 import { leadService } from '../../services/leadService';
 import { type QuoteRequestInput } from '../../types/lead';
+import { useCurrency } from '../../hooks/useCurrency';
 
 interface RequestQuoteModalProps {
   open: boolean;
@@ -34,6 +35,7 @@ const RequestQuoteModal: React.FC<RequestQuoteModalProps> = ({
   agentName,
   packageTitle,
 }) => {
+  const currency = useCurrency();
   const [values, setValues] = useState<QuoteRequestInput>(EMPTY);
   const [errors, setErrors] = useState<FieldErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -208,7 +210,7 @@ const RequestQuoteModal: React.FC<RequestQuoteModalProps> = ({
                 </div>
 
                 <div className="col-md-6">
-                  <label className="form-label" htmlFor="quote-budget">Budget (PKR)</label>
+                  <label className="form-label" htmlFor="quote-budget">Budget ({currency.code})</label>
                   <input
                     id="quote-budget"
                     type="number"

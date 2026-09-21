@@ -46,6 +46,8 @@ export interface FooterSettings {
 export interface SiteSettings {
   _id?: string;
   businessName: string;
+  /** ISO code the admin picked. Every price without its own currency uses it. */
+  currency: string;
   tagline?: string;
   description?: string;
   phones: string[];

@@ -3,9 +3,11 @@ import { categoryService } from '../../../services/categoryService';
 import { type Category, type CreateCategoryData } from '../../../types/category';
 import CategoryFormModal from './CategoryFormModal';
 import { showToast, getErrorMessage } from '../../../utils/toast';
+import { useCurrency } from '../../../hooks/useCurrency';
 import { Badge, Button, DataTable, IconButton, type DataTableColumn } from '../../ui';
 
 const CategoryManagement: React.FC = () => {
+  const currency = useCurrency();
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
@@ -74,7 +76,8 @@ const CategoryManagement: React.FC = () => {
       header: 'Base Price',
       nowrap: true,
       hideBelow: 'lg',
-      render: (c) => `PKR ${c.basePrice.toLocaleString()}`,
+      // A category has no currency of its own; it follows the site setting.
+      render: (c) => currency.format(c.basePrice),
     },
     {
       key: 'status',

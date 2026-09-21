@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../../contexts/AuthContext';
+import { useCurrency } from '../../../hooks/useCurrency';
 import { userService, type UserFilters } from '../../../services/userService';
 import { type User } from '../../../services/authService';
 import { subscriptionService, type Subscription } from '../../../services/subscriptionService';
@@ -50,6 +51,7 @@ const ROLE_TONES: Record<string, BadgeTone> = {
 };
 
 const DashboardArea: React.FC = () => {
+  const currency = useCurrency();
   const { user } = useAuth();
   const [activeModule, setActiveModule] = useState<ActiveModule>(
     user?.role === 'admin' ? 'users' : 'blogs'
@@ -387,9 +389,9 @@ const DashboardArea: React.FC = () => {
       key: 'price',
       header: 'Price',
       nowrap: true,
-      // Currency comes from the plan rather than a hardcoded "$": every price
-      // on this platform is PKR.
-      render: (plan) => `PKR ${plan.price.toLocaleString()}`,
+      // A plan carries no currency of its own, so it is shown in whatever the
+      // admin has configured for the site.
+      render: (plan) => currency.format(plan.price),
     },
     {
       key: 'categoryLimit',
@@ -571,7 +573,7 @@ const DashboardArea: React.FC = () => {
             <div className="col-xl-4 col-lg-6 col-md-6 col-sm-12 mb-30">
               <div className="stats-card">
                 <div className="stats-icon">
-                  <i className="fas fa-dollar-sign"></i>
+                  <i className="fas fa-receipt"></i>
                 </div>
                 <div className="stats-content">
                   <h3>${subscriptions.length > 0 ? (subscriptions.reduce((sum, s) => sum + s.price, 0) / subscriptions.length).toFixed(0) : 0}</h3>

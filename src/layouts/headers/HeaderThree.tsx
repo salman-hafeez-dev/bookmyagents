@@ -6,9 +6,13 @@ import Sidebar from "./Menu/Sidebar";
 import UseSticky from "../../hooks/UseSticky";
 import PhoneIcon from "../../svg/PhoneIcon";
 import UserIcon from "../../svg/UserIcon";
+import { useGetSiteSettingsQuery } from "../../redux/api/siteApi";
+import { telLink } from "../../utils/contact";
 import { useAuth } from "../../contexts/AuthContext";
 
 const HeaderThree = () => {
+   const { data: siteSettings } = useGetSiteSettingsQuery();
+   const headerPhone = siteSettings?.data?.phones?.[0];
 
    const { sticky } = UseSticky();
    const [offCanvas, setOffCanvas] = useState<boolean>(false);
@@ -64,15 +68,22 @@ const HeaderThree = () => {
                      </div>
                      <div className="col-lg-5 col-7">
                         <div className="tg-menu-right-action d-flex align-items-center justify-content-end">
-                           <div className="tg-header-contact-info d-flex align-items-center">
-                              <span className="tg-header-contact-icon mr-5 d-none d-xl-block">
-                                 <PhoneIcon />
-                              </span>
-                              <div className="tg-header-contact-number d-none d-xl-block">
-                                 <span>Call Us:</span>
-                                 <Link to="tel:+123595966">+123 5959 66</Link>
+                           {/* The number comes from the admin-controlled site
+                               settings, on the same cached query the footer and
+                               contact page use. Hidden entirely when no phone
+                               is configured, rather than showing "Call Us:"
+                               with nothing after it. */}
+                           {headerPhone && (
+                              <div className="tg-header-contact-info d-flex align-items-center">
+                                 <span className="tg-header-contact-icon mr-5 d-none d-xl-block">
+                                    <PhoneIcon />
+                                 </span>
+                                 <div className="tg-header-contact-number d-none d-xl-block">
+                                    <span>Call Us:</span>
+                                    <a href={telLink(headerPhone) || undefined}>{headerPhone}</a>
+                                 </div>
                               </div>
-                           </div>
+                           )}
                            {isAuthenticated ?
                               <div className="tg-header-btn ml-20 d-none d-sm-block">
                                  <div className="tg-user-menu" ref={userMenuRef} style={{ position: 'relative' }}>
