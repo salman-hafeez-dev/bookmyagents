@@ -345,7 +345,7 @@
   flex-wrap: wrap;
   /* background: rgba(255, 255, 255, 0.45); */
   border-bottom: 1px solid rgba(255, 255, 255, 0.45);
-  padding: 20px 28px;
+  padding: 20px 2px;
   /* Moved here from .admin-shell-frame: the header never scrolls (it's
      flex: 0 0 auto, a sibling of the scrolling .admin-content), so its
      blur is computed once and left alone. Background opacity bumped up
@@ -405,7 +405,7 @@
 
 @media (max-width: 575.98px) {
   .admin-header {
-    padding: 16px 18px;
+    padding: 16px 8px;
   }
 
   .admin-header-title {

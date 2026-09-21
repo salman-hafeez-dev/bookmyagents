@@ -75,7 +75,7 @@ const BlogTable: React.FC<BlogTableProps> = ({
             loading="lazy"
           />
           <div className="min-w-0">
-            <div className="fw-semibold">{blog.title}</div>
+            <div className="fw-semibold" style={{ minWidth: '200px' }}>{blog.title}</div>
             {/* The content preview was deliberately dropped from this cell —
                 re-add it here if the title alone proves too thin. */}
           </div>
@@ -87,7 +87,7 @@ const BlogTable: React.FC<BlogTableProps> = ({
       header: 'Author',
       hideBelow: 'lg' as const,
       render: (blog: Blog) => (
-        <span className="text-muted">
+        <span style={{ minWidth: '100px' }} className="text-muted">
           {typeof blog.author === 'object' && blog.author?.email
             ? blog.author.email
             : String(blog.author)}
