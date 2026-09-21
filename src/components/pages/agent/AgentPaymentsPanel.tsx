@@ -1,5 +1,4 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { TableSkeleton } from '../../dashboard-admin/Skeleton';
 import PaymentDetailsModal from '../../common/PaymentDetailsModal';
 import PaymentStatusBadge from '../../common/PaymentStatusBadge';
 import InvoiceModal from '../../common/InvoiceModal';
@@ -7,13 +6,16 @@ import { paymentService } from '../../../services/paymentService';
 import { extractApiError } from '../../../services/agentProfileService';
 import { showToast } from '../../../utils/toast';
 import { formatAmount, type Payment, type PaymentStatus } from '../../../types/payment';
+import { Button, DataTable, IconButton, Select, type DataTableColumn } from '../../ui';
 
-const FILTERS: { key: PaymentStatus | 'all'; label: string }[] = [
-  { key: 'all', label: 'All' },
-  { key: 'pending', label: 'Pending' },
-  { key: 'verified', label: 'Verified' },
-  { key: 'rejected', label: 'Rejected' },
+const STATUS_OPTIONS = [
+  { value: 'all', label: 'All statuses' },
+  { value: 'pending', label: 'Pending' },
+  { value: 'verified', label: 'Verified' },
+  { value: 'rejected', label: 'Rejected' },
 ];
+
+const PAGE_SIZE = 20;
 
 // The agent's own payment history. The endpoint scopes every query to the
 // authenticated user, so there is no way to reach another agent's payments
@@ -23,6 +25,7 @@ const AgentPaymentsPanel: React.FC = () => {
   const [status, setStatus] = useState<PaymentStatus | 'all'>('all');
   const [page, setPage] = useState(1);
   const [pages, setPages] = useState(1);
+  const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [viewing, setViewing] = useState<Payment | null>(null);
   // The payment whose invoice PDF is open in the viewer.
@@ -31,9 +34,10 @@ const AgentPaymentsPanel: React.FC = () => {
   const fetchPayments = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await paymentService.getMyPayments({ status, page, limit: 20 });
+      const response = await paymentService.getMyPayments({ status, page, limit: PAGE_SIZE });
       setPayments(response.data);
       setPages(response.pagination.pages);
+      setTotal(response.pagination.total);
     } catch (error) {
       showToast.error(extractApiError(error).message);
     } finally {
@@ -43,111 +47,98 @@ const AgentPaymentsPanel: React.FC = () => {
 
   useEffect(() => { fetchPayments(); }, [fetchPayments]);
 
+  const columns: DataTableColumn<Payment>[] = [
+    {
+      key: 'date',
+      header: 'Date',
+      nowrap: true,
+      render: (payment) => (
+        <span className="text-muted">{new Date(payment.submittedAt).toLocaleDateString()}</span>
+      ),
+    },
+    { key: 'plan', header: 'Plan', render: (payment) => payment.planNameSnapshot },
+    {
+      key: 'amount',
+      header: 'Amount',
+      nowrap: true,
+      render: (payment) => formatAmount(payment.amount, payment.currency),
+    },
+    {
+      key: 'transaction',
+      header: 'Transaction',
+      hideBelow: 'md',
+      render: (payment) => <code className="small">{payment.transactionNumber}</code>,
+    },
+    {
+      key: 'status',
+      header: 'Status',
+      nowrap: true,
+      render: (payment) => (
+        <>
+          <PaymentStatusBadge status={payment.status} />
+          {payment.status === 'rejected' && payment.rejectionReason && (
+            <small className="d-block text-danger">{payment.rejectionReason}</small>
+          )}
+        </>
+      ),
+    },
+    {
+      key: 'invoice',
+      header: 'Invoice',
+      hideBelow: 'lg',
+      render: (payment) => (payment.invoice ? (
+        <Button variant="link" onClick={() => setInvoiceFor(payment)}>
+          {payment.invoice.invoiceNumber}
+        </Button>
+      ) : <span className="text-muted">—</span>),
+    },
+    {
+      key: 'actions',
+      header: '',
+      align: 'right',
+      width: '64px',
+      render: (payment) => (
+        <div className="ui-actions">
+          <IconButton
+            icon="far fa-eye"
+            label="View payment details"
+            onClick={() => setViewing(payment)}
+          />
+        </div>
+      ),
+    },
+  ];
+
   return (
     <div className="dashboard-card">
-      <div className="card-header">
-        <h4>My Payments</h4>
-      </div>
       <div className="card-body">
-        <ul className="nav nav-pills flex-wrap gap-2 mb-20" role="tablist">
-          {FILTERS.map((filter) => (
-            <li className="nav-item" key={filter.key} role="presentation">
-              <button
-                type="button"
-                role="tab"
-                aria-selected={status === filter.key}
-                className={`nav-link ${status === filter.key ? 'active' : ''}`}
-                onClick={() => { setStatus(filter.key); setPage(1); }}
-              >
-                {filter.label}
-              </button>
-            </li>
-          ))}
-        </ul>
-
-        {loading ? (
-          <TableSkeleton rows={4} columns={6} />
-        ) : payments.length === 0 ? (
-          <div className="empty-state">
-            <i className="fas fa-receipt" aria-hidden="true"></i>
-            <h5 className="mt-3 mb-2">No payments yet</h5>
-            <p className="text-muted">
-              Payments appear here once you request a plan and submit your transfer details.
-            </p>
-          </div>
-        ) : (
-          <>
-            <div className="table-responsive">
-              <table className="table table-striped align-middle">
-                <thead>
-                  <tr>
-                    <th scope="col">Date</th>
-                    <th scope="col">Plan</th>
-                    <th scope="col">Amount</th>
-                    <th scope="col">Transaction</th>
-                    <th scope="col">Status</th>
-                    <th scope="col">Invoice</th>
-                    <th scope="col" className="text-end">Details</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {payments.map((payment) => (
-                    <tr key={payment._id}>
-                      <td className="text-muted">{new Date(payment.submittedAt).toLocaleDateString()}</td>
-                      <td>{payment.planNameSnapshot}</td>
-                      <td>{formatAmount(payment.amount, payment.currency)}</td>
-                      <td><code className="small">{payment.transactionNumber}</code></td>
-                      <td>
-                        {<PaymentStatusBadge status={payment.status} />}
-                        {payment.status === 'rejected' && payment.rejectionReason && (
-                          <small className="d-block text-danger">{payment.rejectionReason}</small>
-                        )}
-                      </td>
-                      <td>
-                        {payment.invoice ? (
-                          <button
-                            type="button"
-                            className="btn btn-sm btn-link p-0"
-                            onClick={() => setInvoiceFor(payment)}
-                          >
-                            {payment.invoice.invoiceNumber}
-                          </button>
-                        ) : <span className="text-muted">—</span>}
-                      </td>
-                      <td className="text-end">
-                        <button
-                          type="button"
-                          className="btn btn-sm btn-outline-secondary"
-                          onClick={() => setViewing(payment)}
-                        >
-                          View
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            {pages > 1 && (
-              <nav className="d-flex justify-content-between align-items-center mt-3" aria-label="Payment pages">
-                <button
-                  type="button" className="btn btn-outline-secondary btn-sm"
-                  onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page <= 1}
-                >
-                  Previous
-                </button>
-                <span className="text-muted">Page {page} of {pages}</span>
-                <button
-                  type="button" className="btn btn-outline-secondary btn-sm"
-                  onClick={() => setPage((p) => Math.min(pages, p + 1))} disabled={page >= pages}
-                >
-                  Next
-                </button>
-              </nav>
-            )}
-          </>
-        )}
+        <DataTable<Payment>
+          columns={columns}
+          rows={payments}
+          rowKey={(payment) => payment._id}
+          title="My Payments"
+          loading={loading}
+          toolbar={(
+            <Select
+              options={STATUS_OPTIONS}
+              value={status}
+              size="sm"
+              aria-label="Filter by status"
+              onChange={(event) => {
+                setStatus(event.target.value as PaymentStatus | 'all');
+                setPage(1);
+              }}
+            />
+          )}
+          pagination={{
+            page, pages, total, limit: PAGE_SIZE, onChange: setPage, noun: 'payments',
+          }}
+          emptyState={{
+            icon: 'fas fa-receipt',
+            title: 'No payments yet',
+            description: 'Payments appear here once you request a plan and submit your transfer details.',
+          }}
+        />
       </div>
 
       {viewing && <PaymentDetailsModal payment={viewing} onClose={() => setViewing(null)} />}

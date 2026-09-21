@@ -1,0 +1,102 @@
+/*
+ * Design tokens — the single source of truth for colour, sizing and spacing.
+ *
+ * Everything else in the app reads from here. Before this file there were four
+ * palettes living side by side: the theme's purple on the public site, a blue
+ * (#2F80ED) in the admin dashboard, an indigo/violet gradient plus Bootstrap
+ * blue hardcoded throughout the agent dashboard, and the marketplace's own
+ * --bma-* set. The result was a product that looked like three products.
+ *
+ * The brand colour comes from the theme's SCSS, which emits --tg-theme-primary
+ * on :root from public/assets/scss/utils/_colors.scss. That stays the origin of
+ * the brand; the --ui-* names below are the semantic layer everything consumes,
+ * so a rebrand is one edit in the SCSS palette rather than a grep across 261
+ * files.
+ */
+
+:root {
+  /* ---- Brand ------------------------------------------------------------ */
+  --ui-primary: var(--tg-theme-primary, #560ce3);
+  --ui-primary-dark: #4a0bc7;
+  --ui-primary-light: #7b3ceb;
+  /* Tints for hover fills, selected rows and soft badges. Written as rgba
+     literals rather than colour-mix so they work without a fallback chain. */
+  --ui-primary-soft: rgba(86, 12, 227, 0.08);
+  --ui-primary-soft-hover: rgba(86, 12, 227, 0.14);
+  --ui-primary-ring: rgba(86, 12, 227, 0.22);
+
+  --ui-secondary: var(--tg-theme-secondary, #f74a1f);
+
+  /* ---- Status ----------------------------------------------------------- */
+  --ui-success: #1d9e6a;
+  --ui-success-soft: rgba(29, 158, 106, 0.12);
+  --ui-danger: #dc3545;
+  --ui-danger-soft: rgba(220, 53, 69, 0.10);
+  --ui-warning: #e08a00;
+  --ui-warning-soft: rgba(224, 138, 0, 0.12);
+  --ui-info: #2f80ed;
+  --ui-info-soft: rgba(47, 128, 237, 0.10);
+
+  /* ---- Text ------------------------------------------------------------- */
+  --ui-text: #171a1f;
+  --ui-text-muted: #6b7280;
+  --ui-text-subtle: #9aa1ab;
+  --ui-text-on-primary: #ffffff;
+
+  /* ---- Surfaces & borders ------------------------------------------------ */
+  --ui-surface: #ffffff;
+  --ui-surface-muted: #f7f8fa;
+  --ui-surface-sunken: #f1f3f6;
+  --ui-border: #e4e7ec;
+  --ui-border-strong: #cfd4dc;
+
+  /* ---- Radii ------------------------------------------------------------- */
+  --ui-radius-sm: 8px;
+  --ui-radius-md: 10px;
+  --ui-radius-lg: 14px;
+  --ui-radius-xl: 20px;
+  --ui-radius-pill: 999px;
+
+  /* ---- Shadows ----------------------------------------------------------- */
+  --ui-shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.05);
+  --ui-shadow-md: 0 4px 12px rgba(16, 24, 40, 0.08);
+  --ui-shadow-lg: 0 12px 32px rgba(16, 24, 40, 0.12);
+
+  /* ---- Control sizing ----------------------------------------------------
+     One height scale for every interactive control. A button, an input and a
+     select of the same size must line up when they sit next to each other in
+     a toolbar — before this they did not, because each was styled locally. */
+  --ui-control-height-sm: 32px;
+  --ui-control-height-md: 40px;
+  --ui-control-height-lg: 48px;
+
+  --ui-control-padding-x-sm: 10px;
+  --ui-control-padding-x-md: 14px;
+  --ui-control-padding-x-lg: 18px;
+
+  --ui-font-size-sm: 13px;
+  --ui-font-size-md: 14px;
+  --ui-font-size-lg: 16px;
+
+  /* ---- Spacing ----------------------------------------------------------- */
+  --ui-space-1: 4px;
+  --ui-space-2: 8px;
+  --ui-space-3: 12px;
+  --ui-space-4: 16px;
+  --ui-space-5: 24px;
+  --ui-space-6: 32px;
+
+  /* ---- Motion & focus ---------------------------------------------------- */
+  --ui-transition: 0.18s ease;
+  --ui-focus-ring: 0 0 0 3px var(--ui-primary-ring);
+}
+
+/*
+ * Respect a reader who has asked for less movement. Every transition and
+ * animation in the UI layer is a nicety, never load-bearing.
+ */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --ui-transition: 0s;
+  }
+}

@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { blogService } from '../../../services/blogService';
 import { type Blog, type BlogFilters } from '../../../types/blog';
-import BlogList from './BlogList';
+import BlogTable from './BlogTable';
+import { IconButton } from '../../ui';
 import BlogDetail from './BlogDetail';
 import BlogStatsCard from './BlogStatsCard';
 import BlogForm from './BlogForm';
@@ -172,7 +173,9 @@ const BlogManagement: React.FC = () => {
 
             <div className="row">
                 <div className="col-12">
-                    <BlogList
+                    <BlogTable
+                        title="Blog Posts"
+                        showAuthor
                         blogs={blogs}
                         loading={loading}
                         filters={filters}
@@ -180,9 +183,23 @@ const BlogManagement: React.FC = () => {
                         onFilterChange={handleFilterChange}
                         onPageChange={handlePageChange}
                         onViewDetail={handleViewDetail}
-                        onApprove={handleApprove}
-                        onReject={handleReject}
                         onAddBlog={handleAddBlog}
+                        rowActions={(blog) => blog.status === 'pending' && (
+                            <>
+                                <IconButton
+                                    icon="far fa-circle-check"
+                                    label="Approve"
+                                    tone="success"
+                                    onClick={() => handleApprove(blog._id)}
+                                />
+                                <IconButton
+                                    icon="far fa-circle-xmark"
+                                    label="Reject"
+                                    tone="danger"
+                                    onClick={() => handleReject(blog._id)}
+                                />
+                            </>
+                        )}
                     />
                 </div>
             </div>

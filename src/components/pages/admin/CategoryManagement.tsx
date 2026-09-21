@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { categoryService } from '../../../services/categoryService';
 import { type Category, type CreateCategoryData } from '../../../types/category';
 import CategoryFormModal from './CategoryFormModal';
-import { TableSkeleton } from '../../dashboard-admin/Skeleton';
 import { showToast, getErrorMessage } from '../../../utils/toast';
+import { Badge, Button, DataTable, IconButton, type DataTableColumn } from '../../ui';
 
 const CategoryManagement: React.FC = () => {
   const [categories, setCategories] = useState<Category[]>([]);
@@ -65,77 +65,68 @@ const CategoryManagement: React.FC = () => {
     }
   };
 
+  const columns: DataTableColumn<Category>[] = [
+    { key: 'order', header: 'Order', width: '80px', nowrap: true, render: (c) => c.displayOrder },
+    { key: 'name', header: 'Name', render: (c) => <span className="fw-semibold">{c.name}</span> },
+    { key: 'slug', header: 'Slug', hideBelow: 'md', render: (c) => <code className="small">{c.slug}</code> },
+    {
+      key: 'price',
+      header: 'Base Price',
+      nowrap: true,
+      hideBelow: 'lg',
+      render: (c) => `PKR ${c.basePrice.toLocaleString()}`,
+    },
+    {
+      key: 'status',
+      header: 'Status',
+      nowrap: true,
+      render: (c) => (c.isActive
+        ? <Badge tone="success" dot>Active</Badge>
+        : <Badge tone="neutral" dot>Inactive</Badge>),
+    },
+    {
+      key: 'actions',
+      header: '',
+      align: 'right',
+      width: '96px',
+      render: (category) => (
+        <div className="ui-actions">
+          <IconButton
+            icon="far fa-pen-to-square"
+            label="Edit category"
+            onClick={() => handleEdit(category)}
+          />
+          <IconButton
+            icon={category.isActive ? 'far fa-eye-slash' : 'far fa-eye'}
+            label={category.isActive ? 'Deactivate' : 'Activate'}
+            tone={category.isActive ? 'warning' : 'success'}
+            onClick={() => handleToggleActive(category)}
+          />
+        </div>
+      ),
+    },
+  ];
+
   return (
     <div className="admin-category-management">
       <div className="dashboard-card">
-        <div className="card-header">
-          <div className="d-flex justify-content-between align-items-center">
-            <h4>Service Categories</h4>
-            <button className="btn btn-primary btn-sm" onClick={handleAdd}>
-              <i className="fas fa-plus me-2"></i>
-              Add Category
-            </button>
-          </div>
-        </div>
         <div className="card-body">
-          {loading ? (
-            <TableSkeleton rows={5} columns={6} />
-          ) : (
-            <div className="table-responsive">
-              <table className="table table-striped">
-                <thead>
-                  <tr>
-                    <th>Order</th>
-                    <th>Name</th>
-                    <th>Slug</th>
-                    <th>Base Price</th>
-                    <th>Status</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {categories.map((category) => (
-                    <tr key={category._id}>
-                      <td>{category.displayOrder}</td>
-                      <td>{category.name}</td>
-                      <td><code>{category.slug}</code></td>
-                      <td>${category.basePrice}</td>
-                      <td>
-                        <span className={`badge ${category.isActive ? 'bg-success' : 'bg-secondary'}`}>
-                          {category.isActive ? 'Active' : 'Inactive'}
-                        </span>
-                      </td>
-                      <td>
-                        <div className="btn-group" role="group">
-                          <button
-                            className="btn btn-sm btn-primary"
-                            onClick={() => handleEdit(category)}
-                            title="Edit Category"
-                          >
-                            <i className="fas fa-edit"></i>
-                          </button>
-                          <button
-                            className={`btn btn-sm ${category.isActive ? 'btn-warning' : 'btn-success'}`}
-                            onClick={() => handleToggleActive(category)}
-                            title={category.isActive ? 'Deactivate' : 'Activate'}
-                          >
-                            <i className={`fas ${category.isActive ? 'fa-eye-slash' : 'fa-eye'}`}></i>
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              {categories.length === 0 && (
-                <div className="empty-state">
-                  <i className="fas fa-folder-open"></i>
-                  <h5 className="mt-3 mb-2">No Categories Found</h5>
-                  <p className="text-muted">Create your first service category to get started.</p>
-                </div>
-              )}
-            </div>
-          )}
+          <DataTable<Category>
+            columns={columns}
+            rows={categories}
+            rowKey={(category) => category._id}
+            pagination={{ noun: 'categories' }}
+            title="Service Categories"
+            loading={loading}
+            search={{ placeholder: 'Search categories…', keys: ['name', 'slug'] }}
+            actions={<Button icon="fas fa-plus" size="sm" onClick={handleAdd}>Add category</Button>}
+            emptyState={{
+              icon: 'fas fa-folder-open',
+              title: 'No categories found',
+              description: 'Create your first service category to get started.',
+              action: <Button onClick={handleAdd}>Add category</Button>,
+            }}
+          />
         </div>
       </div>
 

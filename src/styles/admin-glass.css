@@ -15,21 +15,25 @@
   --glass-border-input: rgba(17, 24, 39, 0.16);
   --glass-blur: 24px;
 
-  --admin-primary: #2F80ED;
-  --admin-primary-dark: #287be5;
-  --admin-nav-active-start: #3b82f6;
-  --admin-nav-active-end: #287be5;
-  --admin-success: #22B573;
-  --admin-danger: #EF5350;
-  --admin-warning: #F5A623;
+  /* These were their own blue palette, which is why the dashboard never
+     looked like the rest of the product. They are aliases onto the shared
+     tokens now — kept as names so the ~200 usages below don't all have to
+     change, but there is only one palette. */
+  --admin-primary: var(--ui-primary);
+  --admin-primary-dark: var(--ui-primary-dark);
+  --admin-nav-active-start: var(--ui-primary-light);
+  --admin-nav-active-end: var(--ui-primary-dark);
+  --admin-success: var(--ui-success);
+  --admin-danger: var(--ui-danger);
+  --admin-warning: var(--ui-warning);
 
-  --admin-text-primary: #171A1F;
-  --admin-text-secondary: #6B7280;
+  --admin-text-primary: var(--ui-text);
+  --admin-text-secondary: var(--ui-text-muted);
 
-  --admin-radius-sm: 9px;
-  --admin-radius-md: 14px;
+  --admin-radius-sm: var(--ui-radius-sm);
+  --admin-radius-md: var(--ui-radius-lg);
   --admin-radius-lg: 18px;
-  --admin-radius-xl: 24px;
+  --admin-radius-xl: var(--ui-radius-xl);
 
   --admin-shadow-glass: 0 8px 32px rgba(31, 38, 135, 0.08);
   --admin-shadow-elevated: 0 16px 40px rgba(31, 38, 135, 0.12);
@@ -341,7 +345,7 @@
   flex-wrap: wrap;
   /* background: rgba(255, 255, 255, 0.45); */
   border-bottom: 1px solid rgba(255, 255, 255, 0.45);
-  padding: 20px 28px;
+  padding: 20px 2px;
   /* Moved here from .admin-shell-frame: the header never scrolls (it's
      flex: 0 0 auto, a sibling of the scrolling .admin-content), so its
      blur is computed once and left alone. Background opacity bumped up
@@ -401,7 +405,7 @@
 
 @media (max-width: 575.98px) {
   .admin-header {
-    padding: 16px 18px;
+    padding: 16px 8px;
   }
 
   .admin-header-title {

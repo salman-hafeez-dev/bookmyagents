@@ -1,8 +1,8 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { Link } from 'react-router-dom';
-import { TableSkeleton } from '../../dashboard-admin/Skeleton';
 import LegalPageFormModal from './LegalPageFormModal';
+import { Badge, Button, DataTable, IconButton, type DataTableColumn } from '../../ui';
 import { legalPageService } from '../../../services/legalPageService';
 import { extractApiError } from '../../../services/agentProfileService';
 import { showToast } from '../../../utils/toast';
@@ -127,14 +127,79 @@ const LegalPagesManagement: React.FC = () => {
     fetchPages();
   };
 
+  const columns: DataTableColumn<LegalPageSummary>[] = [
+    {
+      key: 'title',
+      header: 'Title',
+      render: (page) => <span className="fw-semibold">{page.title}</span>,
+    },
+    {
+      key: 'url',
+      header: 'URL',
+      hideBelow: 'md',
+      render: (page) => (page.status === 'published' ? (
+        <Link to={`/legal/${page.slug}`} target="_blank" rel="noopener noreferrer">
+          <code className="small">/legal/{page.slug}</code>
+        </Link>
+      ) : (
+        <code className="small text-muted">/legal/{page.slug}</code>
+      )),
+    },
+    {
+      key: 'status',
+      header: 'Status',
+      nowrap: true,
+      render: (page) => (page.status === 'published'
+        ? <Badge tone="success" dot>Published</Badge>
+        : <Badge tone="neutral" dot>Draft</Badge>),
+    },
+    {
+      key: 'footer',
+      header: 'In footer',
+      hideBelow: 'lg',
+      render: (page) => (page.showInFooter ? 'Yes' : 'No'),
+    },
+    {
+      key: 'updated',
+      header: 'Last updated',
+      nowrap: true,
+      hideBelow: 'md',
+      render: (page) => (page.updatedAt ? new Date(page.updatedAt).toLocaleDateString() : '—'),
+    },
+    {
+      key: 'actions',
+      header: '',
+      align: 'right',
+      width: '132px',
+      render: (page) => (
+        <div className="ui-actions">
+          <IconButton
+            icon={page.status === 'published' ? 'far fa-eye-slash' : 'far fa-paper-plane'}
+            label={page.status === 'published' ? 'Unpublish' : 'Publish'}
+            tone={page.status === 'published' ? 'warning' : 'success'}
+            onClick={() => togglePublish(page)}
+            disabled={busyId === page._id}
+          />
+          <IconButton
+            icon="far fa-pen-to-square"
+            label="Edit"
+            onClick={() => openEdit(page)}
+            loading={busyId === page._id}
+          />
+          <IconButton
+            icon="far fa-trash-can"
+            label="Delete"
+            tone="danger"
+            onClick={() => remove(page)}
+            disabled={busyId === page._id}
+          />
+        </div>
+      ),
+    },
+  ];
+
   return (
     <div className="dashboard-card">
-      <div className="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
-        <h4 className="mb-0">Legal Pages</h4>
-        <button type="button" className="btn btn-sm btn-primary" onClick={openCreate}>
-          <i className="fas fa-plus me-2" aria-hidden="true" />New page
-        </button>
-      </div>
       <div className="card-body">
         <p className="text-muted">
           Terms &amp; Conditions, Privacy Policy and any other policy you need — refunds, cancellations,
@@ -142,82 +207,22 @@ const LegalPagesManagement: React.FC = () => {
           a draft is invisible to visitors.
         </p>
 
-        {loading ? (
-          <TableSkeleton rows={3} columns={5} />
-        ) : pages.length === 0 ? (
-          <div className="empty-state">
-            <i className="fas fa-file-contract" aria-hidden="true"></i>
-            <h5 className="mt-3 mb-2">No legal pages yet</h5>
-            <p className="text-muted">
-              Add your Terms &amp; Conditions and Privacy Policy so visitors know where they stand.
-            </p>
-            <button type="button" className="btn btn-primary mt-2" onClick={openCreate}>
-              Create the first page
-            </button>
-          </div>
-        ) : (
-          <div className="table-responsive">
-            <table className="table table-striped align-middle">
-              <thead>
-                <tr>
-                  <th scope="col">Title</th>
-                  <th scope="col">URL</th>
-                  <th scope="col">Status</th>
-                  <th scope="col">In footer</th>
-                  <th scope="col">Last updated</th>
-                  <th scope="col" className="text-end">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {pages.map((page) => (
-                  <tr key={page._id}>
-                    <td className="fw-semibold">{page.title}</td>
-                    <td>
-                      {page.status === 'published' ? (
-                        <Link to={`/legal/${page.slug}`} target="_blank" rel="noopener noreferrer">
-                          <code className="small">/legal/{page.slug}</code>
-                        </Link>
-                      ) : (
-                        <code className="small text-muted">/legal/{page.slug}</code>
-                      )}
-                    </td>
-                    <td>
-                      {page.status === 'published'
-                        ? <span className="badge bg-success">Published</span>
-                        : <span className="badge bg-secondary">Draft</span>}
-                    </td>
-                    <td>{page.showInFooter ? 'Yes' : 'No'}</td>
-                    <td>{page.updatedAt ? new Date(page.updatedAt).toLocaleDateString() : '—'}</td>
-                    <td className="text-end">
-                      <button
-                        type="button"
-                        className={`btn btn-sm me-2 ${page.status === 'published' ? 'btn-outline-warning' : 'btn-outline-success'}`}
-                        onClick={() => togglePublish(page)}
-                        disabled={busyId === page._id}
-                      >
-                        {page.status === 'published' ? 'Unpublish' : 'Publish'}
-                      </button>
-                      <button
-                        type="button" className="btn btn-sm btn-outline-secondary me-2"
-                        onClick={() => openEdit(page)}
-                        disabled={busyId === page._id}
-                      >
-                        {busyId === page._id ? 'Opening…' : 'Edit'}
-                      </button>
-                      <button
-                        type="button" className="btn btn-sm btn-outline-danger"
-                        onClick={() => remove(page)}
-                        disabled={busyId === page._id}
-                      >
-                        Delete
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+        <DataTable<LegalPageSummary>
+          columns={columns}
+          rows={pages}
+          rowKey={(page) => page._id}
+          pagination={{ noun: 'pages' }}
+          title="Legal Pages"
+          loading={loading}
+          search={{ placeholder: 'Search by title or URL…', keys: ['title', 'slug'] }}
+          actions={<Button icon="fas fa-plus" size="sm" onClick={openCreate}>New page</Button>}
+          emptyState={{
+            icon: 'fas fa-file-contract',
+            title: 'No legal pages yet',
+            description: 'Add your Terms & Conditions and Privacy Policy so visitors know where they stand.',
+            action: <Button onClick={openCreate}>Create the first page</Button>,
+          }}
+        />
       </div>
 
       {showForm && (

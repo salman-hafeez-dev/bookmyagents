@@ -10,6 +10,7 @@ import { agentProfileService } from '../../../../services/agentProfileService';
 import { showToast, getErrorMessage } from '../../../../utils/toast';
 import { useConfirm } from '../../../../contexts/ConfirmContext';
 import PackageForm from './PackageForm';
+import { Select } from '../../../ui';
 import PackageList from './PackageList';
 
 type PanelView = 'list' | 'create' | 'edit';
@@ -161,47 +162,39 @@ const AgentPackagesPanel: React.FC = () => {
         </div>
       </div>
 
-      <div className="dashboard-card mb-4">
-        <div className="card-body d-flex flex-wrap justify-content-between align-items-center gap-3">
-          <div className="d-flex flex-wrap gap-2 align-items-center">
-            <select
-              className="form-select"
-              style={{ maxWidth: 220 }}
+      <PackageList
+        packages={packages}
+        isLoading={isLoading}
+        onCreate={() => setView('create')}
+        toolbar={(
+          <>
+            <Select
+              options={[
+                { value: '', label: 'All categories' },
+                ...categories.map((category) => ({ value: category._id, label: category.name })),
+              ]}
               value={filters.category || ''}
+              size="sm"
+              aria-label="Filter by category"
               onChange={(event) => setFilters({ ...filters, category: event.target.value || undefined, page: 1 })}
-            >
-              <option value="">All categories</option>
-              {categories.map((category) => (
-                <option key={category._id} value={category._id}>{category.name}</option>
-              ))}
-            </select>
-
-            <select
-              className="form-select"
-              style={{ maxWidth: 180 }}
+            />
+            <Select
+              options={[
+                { value: '', label: 'Live and hidden' },
+                { value: 'true', label: 'Live only' },
+                { value: 'false', label: 'Hidden only' },
+              ]}
               value={filters.isActive === undefined ? '' : String(filters.isActive)}
+              size="sm"
+              aria-label="Filter by visibility"
               onChange={(event) => setFilters({
                 ...filters,
                 isActive: event.target.value === '' ? undefined : event.target.value === 'true',
                 page: 1,
               })}
-            >
-              <option value="">Live and hidden</option>
-              <option value="true">Live only</option>
-              <option value="false">Hidden only</option>
-            </select>
-          </div>
-
-          <button type="button" className="btn btn-primary" onClick={() => setView('create')}>
-            <i className="fas fa-plus me-2"></i>Add Package
-          </button>
-        </div>
-      </div>
-
-      <PackageList
-        packages={packages}
-        isLoading={isLoading}
-        onCreate={() => setView('create')}
+            />
+          </>
+        )}
         onEdit={(travelPackage) => { setEditing(travelPackage); setView('edit'); }}
         onDelete={handleDelete}
         onToggleActive={handleToggleActive}

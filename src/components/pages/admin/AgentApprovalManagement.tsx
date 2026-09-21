@@ -1,8 +1,8 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import AgentReviewDetail from './AgentReviewDetail';
-import { TableSkeleton } from '../../dashboard-admin/Skeleton';
 import { adminAgentService, extractApiError } from '../../../services/agentProfileService';
 import { showToast } from '../../../utils/toast';
+import { Badge, DataTable, IconButton, type BadgeTone, type DataTableColumn } from '../../ui';
 import {
   type AdminAgentListItem,
   type AgentProfileStatus,
@@ -19,13 +19,13 @@ const FILTERS: { key: StatusFilter; label: string }[] = [
 ];
 
 const statusBadge = (status: AgentProfileStatus) => {
-  const variants: Record<AgentProfileStatus, string> = {
-    approved: 'bg-success',
-    pending: 'bg-warning text-dark',
-    rejected: 'bg-danger',
-    incomplete: 'bg-secondary',
+  const tones: Record<AgentProfileStatus, BadgeTone> = {
+    approved: 'success',
+    pending: 'warning',
+    rejected: 'danger',
+    incomplete: 'neutral',
   };
-  return <span className={`badge ${variants[status]}`}>{status}</span>;
+  return <Badge tone={tones[status]} dot>{status}</Badge>;
 };
 
 const AgentApprovalManagement: React.FC = () => {
@@ -36,6 +36,7 @@ const AgentApprovalManagement: React.FC = () => {
   const [searchInput, setSearchInput] = useState('');
   const [page, setPage] = useState(1);
   const [pages, setPages] = useState(1);
+  const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null);
 
@@ -46,6 +47,7 @@ const AgentApprovalManagement: React.FC = () => {
       setAgents(response.data.agents);
       setCounts(response.data.filters);
       setPages(response.data.pagination.pages);
+      setTotal(response.data.pagination.total);
     } catch (error) {
       showToast.error(extractApiError(error).message);
     } finally {
@@ -55,16 +57,91 @@ const AgentApprovalManagement: React.FC = () => {
 
   useEffect(() => { fetchAgents(); }, [fetchAgents]);
 
-  const handleSearch = (event: React.FormEvent) => {
-    event.preventDefault();
-    setPage(1);
-    setSearch(searchInput.trim());
-  };
+  // Server-side search, debounced rather than fired per keystroke — which is
+  // what the old "Search" button was working around.
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setSearch((current) => (current === searchInput.trim() ? current : searchInput.trim()));
+      setPage(1);
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [searchInput]);
 
   const changeStatus = (next: StatusFilter) => {
     setStatus(next);
     setPage(1);
   };
+
+  const columns: DataTableColumn<AdminAgentListItem>[] = [
+    {
+      key: 'company',
+      header: 'Company',
+      render: (agent) => (agent.companyName
+        ? <span className="fw-semibold">{agent.companyName}</span>
+        : <span className="text-muted fst-italic">Not set</span>),
+    },
+    { key: 'owner', header: 'Owner', hideBelow: 'md', render: (agent) => agent.ownerName || '—' },
+    {
+      key: 'email',
+      header: 'Email',
+      hideBelow: 'lg',
+      render: (agent) => <span className="text-muted">{agent.email || '—'}</span>,
+    },
+    { key: 'status', header: 'Status', nowrap: true, render: (agent) => statusBadge(agent.status) },
+    {
+      key: 'progress',
+      header: 'Progress',
+      width: '150px',
+      render: (agent) => (
+        <div className="d-flex align-items-center gap-2">
+          <div
+            className="progress flex-grow-1" style={{ height: 6 }} role="progressbar"
+            aria-label={`${agent.companyName || 'Agent'} completion`}
+            aria-valuenow={agent.profileCompletionPercentage}
+            aria-valuemin={0} aria-valuemax={100}
+          >
+            <div className="progress-bar" style={{ width: `${agent.profileCompletionPercentage}%` }} />
+          </div>
+          <small className="text-muted flex-shrink-0">{agent.profileCompletionPercentage}%</small>
+        </div>
+      ),
+    },
+    {
+      key: 'docs',
+      header: 'Docs',
+      align: 'center',
+      hideBelow: 'lg',
+      render: (agent) => <span className="text-muted">{agent.documentsCount}</span>,
+    },
+    {
+      key: 'submitted',
+      header: 'Submitted',
+      nowrap: true,
+      hideBelow: 'md',
+      render: (agent) => (
+        <span className="text-muted">
+          {agent.submittedForReviewAt
+            ? new Date(agent.submittedForReviewAt).toLocaleDateString()
+            : '—'}
+        </span>
+      ),
+    },
+    {
+      key: 'actions',
+      header: '',
+      align: 'right',
+      width: '64px',
+      render: (agent) => (
+        <div className="ui-actions">
+          <IconButton
+            icon="far fa-folder-open"
+            label="Review this registration"
+            onClick={() => setSelectedAgentId(agent._id)}
+          />
+        </div>
+      ),
+    },
+  ];
 
   if (selectedAgentId) {
     return (
@@ -80,9 +157,6 @@ const AgentApprovalManagement: React.FC = () => {
 
   return (
     <div className="dashboard-card">
-      <div className="card-header">
-        <h4>Agent Registrations</h4>
-      </div>
       <div className="card-body">
         <div className="d-flex justify-content-between align-items-end flex-wrap gap-3 mb-20">
           <ul className="nav nav-pills flex-wrap gap-2 mb-0" role="tablist">
@@ -97,114 +171,33 @@ const AgentApprovalManagement: React.FC = () => {
                 >
                   {filter.label}
                   {counts[filter.key] !== undefined && (
-                    <span className="badge bg-light text-dark ms-2">{counts[filter.key]}</span>
+                    <Badge tone="neutral" className="ms-2">{counts[filter.key]}</Badge>
                   )}
                 </button>
               </li>
             ))}
           </ul>
 
-          <form className="d-flex gap-2" onSubmit={handleSearch} role="search">
-            <input
-              type="search"
-              className="form-control"
-              value={searchInput}
-              onChange={(event) => setSearchInput(event.target.value)}
-              placeholder="Company, owner or email"
-              aria-label="Search agents"
-            />
-            <button type="submit" className="btn btn-outline-primary flex-shrink-0">Search</button>
-          </form>
         </div>
 
-        {loading ? (
-          <TableSkeleton rows={5} columns={7} />
-        ) : agents.length === 0 ? (
-          <div className="empty-state">
-            <i className="fas fa-user-check" aria-hidden="true"></i>
-            <h5 className="mt-3 mb-2">No agents found</h5>
-            <p className="text-muted">
-              {search ? 'No agent matches that search.' : `No agents with "${status}" status.`}
-            </p>
-          </div>
-        ) : (
-          <>
-            <div className="table-responsive">
-              <table className="table table-striped align-middle">
-                <thead>
-                  <tr>
-                    <th scope="col">Company</th>
-                    <th scope="col">Owner</th>
-                    <th scope="col">Email</th>
-                    <th scope="col">Status</th>
-                    <th scope="col">Progress</th>
-                    <th scope="col">Docs</th>
-                    <th scope="col">Submitted</th>
-                    <th scope="col" className="text-end">Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {agents.map((agent) => (
-                    <tr key={agent._id}>
-                      <td>{agent.companyName || <span className="text-muted fst-italic">Not set</span>}</td>
-                      <td>{agent.ownerName || '—'}</td>
-                      <td className="text-muted">{agent.email || '—'}</td>
-                      <td>{statusBadge(agent.status)}</td>
-                      <td style={{ minWidth: 130 }}>
-                        <div className="d-flex align-items-center gap-2">
-                          <div
-                            className="progress flex-grow-1" style={{ height: 6 }} role="progressbar"
-                            aria-label={`${agent.companyName || 'Agent'} completion`}
-                            aria-valuenow={agent.profileCompletionPercentage}
-                            aria-valuemin={0} aria-valuemax={100}
-                          >
-                            <div className="progress-bar" style={{ width: `${agent.profileCompletionPercentage}%` }} />
-                          </div>
-                          <small className="text-muted flex-shrink-0">{agent.profileCompletionPercentage}%</small>
-                        </div>
-                      </td>
-                      <td className="text-muted">{agent.documentsCount}</td>
-                      <td className="text-muted">
-                        {agent.submittedForReviewAt
-                          ? new Date(agent.submittedForReviewAt).toLocaleDateString()
-                          : '—'}
-                      </td>
-                      <td className="text-end">
-                        <button
-                          type="button"
-                          className="btn btn-sm btn-outline-primary"
-                          onClick={() => setSelectedAgentId(agent._id)}
-                        >
-                          Review
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            {pages > 1 && (
-              <nav className="d-flex justify-content-between align-items-center mt-3" aria-label="Agent list pages">
-                <button
-                  type="button" className="btn btn-outline-secondary btn-sm"
-                  onClick={() => setPage((current) => Math.max(1, current - 1))}
-                  disabled={page <= 1}
-                >
-                  Previous
-                </button>
-                <span className="text-muted">Page {page} of {pages}</span>
-                <button
-                  type="button" className="btn btn-outline-secondary btn-sm"
-                  onClick={() => setPage((current) => Math.min(pages, current + 1))}
-                  disabled={page >= pages}
-                >
-                  Next
-                </button>
-              </nav>
-            )}
-          </>
-        )}
+        <DataTable<AdminAgentListItem>
+          columns={columns}
+          rows={agents}
+          rowKey={(agent) => agent._id}
+          title="Agent Registrations"
+          loading={loading}
+          search={{
+            placeholder: 'Company, owner or email…',
+            value: searchInput,
+            onChange: setSearchInput,
+          }}
+          pagination={{ page, pages, total, limit: 20, onChange: setPage, noun: 'agents' }}
+          emptyState={{
+            icon: 'fas fa-user-check',
+            title: 'No agents found',
+            description: search ? 'No agent matches that search.' : `No agents with "${status}" status.`,
+          }}
+        />
       </div>
     </div>
   );

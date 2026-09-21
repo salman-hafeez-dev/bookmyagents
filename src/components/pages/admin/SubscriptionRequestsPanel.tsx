@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { subscriptionRequestService } from '../../../services/subscriptionRequestService';
 import { type SubscriptionRequest } from '../../../types/subscriptionRequest';
-import { TableSkeleton } from '../../dashboard-admin/Skeleton';
 import PaymentDetailsModal from '../../common/PaymentDetailsModal';
 import PaymentStatusBadge from '../../common/PaymentStatusBadge';
+import { Badge, DataTable, IconButton, Textarea, type DataTableColumn } from '../../ui';
 import ConfirmationModal from '../../common/ConfirmationModal';
 import { formatAmount, type Payment } from '../../../types/payment';
 import { useConfirm } from '../../../contexts/ConfirmContext';
@@ -85,14 +85,137 @@ const SubscriptionRequestsPanel: React.FC = () => {
     }
   };
 
+  type RequestRow = (typeof requests)[number];
+
+  const columns: DataTableColumn<RequestRow>[] = [
+    {
+      key: 'agent',
+      header: 'Agent',
+      render: (req) => {
+        const agent = typeof req.agentId === 'object' ? req.agentId : null;
+        return agent ? (
+          <>
+            <div className="fw-semibold">{agent.fullName}</div>
+            <small className="text-muted">{agent.email}</small>
+          </>
+        ) : 'Unknown agent';
+      },
+    },
+    {
+      key: 'currentPlan',
+      header: 'Current plan',
+      nowrap: true,
+      hideBelow: 'lg',
+      render: (req) => {
+        const agent = typeof req.agentId === 'object' ? req.agentId : null;
+        const currentPlan = agent?.subscription && typeof agent.subscription === 'object'
+          ? agent.subscription : null;
+        return currentPlan
+          ? <Badge tone="neutral">{currentPlan.name}</Badge>
+          : <span className="text-muted">None</span>;
+      },
+    },
+    {
+      key: 'requestedPlan',
+      header: 'Requested plan',
+      nowrap: true,
+      render: (req) => {
+        const requestedPlan = typeof req.subscriptionId === 'object' ? req.subscriptionId : null;
+        return requestedPlan ? <Badge tone="primary">{requestedPlan.name}</Badge> : 'N/A';
+      },
+    },
+    {
+      key: 'amount',
+      header: 'Amount',
+      nowrap: true,
+      render: (req) => {
+        const payment = (req as unknown as { payment?: Payment | null }).payment || null;
+        // The snapshot, not the plan's current price — a later price edit must
+        // not rewrite what was charged.
+        return payment
+          ? formatAmount(payment.amount, payment.currency)
+          : req.amountSnapshot !== undefined
+            ? formatAmount(req.amountSnapshot, req.currencySnapshot || 'PKR')
+            : <span className="text-muted">—</span>;
+      },
+    },
+    {
+      key: 'transaction',
+      header: 'Transaction',
+      hideBelow: 'lg',
+      render: (req) => {
+        const payment = (req as unknown as { payment?: Payment | null }).payment || null;
+        return payment
+          ? <code className="small">{payment.transactionNumber}</code>
+          : <span className="text-muted">—</span>;
+      },
+    },
+    {
+      key: 'sender',
+      header: 'Sender',
+      hideBelow: 'lg',
+      render: (req) => {
+        const payment = (req as unknown as { payment?: Payment | null }).payment || null;
+        return payment ? payment.senderAccountName : <span className="text-muted">—</span>;
+      },
+    },
+    {
+      key: 'payment',
+      header: 'Payment',
+      nowrap: true,
+      render: (req) => {
+        const payment = (req as unknown as { payment?: Payment | null }).payment || null;
+        return payment
+          ? <PaymentStatusBadge status={payment.status} />
+          : <Badge tone="neutral">None</Badge>;
+      },
+    },
+    {
+      key: 'requestedOn',
+      header: 'Requested on',
+      nowrap: true,
+      hideBelow: 'md',
+      render: (req) => (
+        <span className="text-muted">{new Date(req.createdAt).toLocaleDateString()}</span>
+      ),
+    },
+    {
+      key: 'actions',
+      header: '',
+      align: 'right',
+      width: '132px',
+      render: (req) => {
+        const payment = (req as unknown as { payment?: Payment | null }).payment || null;
+        return (
+          <div className="ui-actions">
+            <IconButton
+              icon="far fa-receipt"
+              label={payment ? 'View payment details' : 'No payment attached'}
+              disabled={!payment}
+              onClick={() => payment && setViewingPayment(payment)}
+            />
+            <IconButton
+              icon="far fa-circle-check"
+              label="Verify payment and approve"
+              tone="success"
+              disabled={actingId === req._id}
+              onClick={() => handleApprove(req._id)}
+            />
+            <IconButton
+              icon="far fa-circle-xmark"
+              label="Reject"
+              tone="danger"
+              disabled={actingId === req._id}
+              onClick={() => { setRejectingId(req._id); setRejectionReason(''); }}
+            />
+          </div>
+        );
+      },
+    },
+  ];
+
   return (
     <div className="dashboard-card mb-30">
-      <div className="card-header">
-        <h4>
-          Pending Subscription Requests
-          {!loading && <span className="badge bg-secondary ms-2">{requests.length}</span>}
-        </h4>
-      </div>
       <div className="card-body">
         {message && (
           <div className={`alert ${message.type === 'success' ? 'alert-success' : 'alert-danger'} alert-dismissible fade show`} role="alert">
@@ -101,114 +224,35 @@ const SubscriptionRequestsPanel: React.FC = () => {
           </div>
         )}
 
-        {loading ? (
-          <TableSkeleton rows={3} columns={5} />
-        ) : requests.length === 0 ? (
-          <div className="empty-state">
-            <i className="fas fa-inbox"></i>
-            <h5 className="mt-3 mb-2">No Pending Requests</h5>
-            <p className="text-muted">All subscription requests have been reviewed.</p>
-          </div>
-        ) : (
-          <div className="table-responsive">
-            <table className="table table-striped">
-              <thead>
-                <tr>
-                  <th>Agent</th>
-                  <th>Current Plan</th>
-                  <th>Requested Plan</th>
-                  <th>Amount</th>
-                  <th>Transaction</th>
-                  <th>Sender</th>
-                  <th>Payment</th>
-                  <th>Requested On</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {requests.map((req) => {
-                  const agent = typeof req.agentId === 'object' ? req.agentId : null;
-                  const requestedPlan = typeof req.subscriptionId === 'object' ? req.subscriptionId : null;
-                  const currentPlan = agent?.subscription && typeof agent.subscription === 'object' ? agent.subscription : null;
-                  // Attached by the admin list endpoint — the request references
-                  // its payment rather than duplicating any of it.
-                  const payment = (req as unknown as { payment?: Payment | null }).payment || null;
-                  return (
-                    <tr key={req._id}>
-                      <td>
-                        {agent ? (
-                          <>
-                            <div>{agent.fullName}</div>
-                            <small className="text-muted">{agent.email}</small>
-                          </>
-                        ) : 'Unknown agent'}
-                      </td>
-                      <td>
-                        {currentPlan ? (
-                          <span className="badge bg-secondary">{currentPlan.name}</span>
-                        ) : (
-                          <span className="text-muted">None</span>
-                        )}
-                      </td>
-                      <td>
-                        {requestedPlan ? (
-                          <span className="badge bg-primary">{requestedPlan.name}</span>
-                        ) : 'N/A'}
-                      </td>
-                      <td>
-                        {/* The snapshot, not the plan's current price — a later
-                            price edit must not rewrite what was charged. */}
-                        {payment
-                          ? formatAmount(payment.amount, payment.currency)
-                          : req.amountSnapshot !== undefined
-                            ? formatAmount(req.amountSnapshot, req.currencySnapshot || 'PKR')
-                            : <span className="text-muted">—</span>}
-                      </td>
-                      <td>
-                        {payment ? <code className="small">{payment.transactionNumber}</code> : <span className="text-muted">—</span>}
-                      </td>
-                      <td>
-                        {payment ? payment.senderAccountName : <span className="text-muted">—</span>}
-                      </td>
-                      <td>
-                        {payment ? <PaymentStatusBadge status={payment.status} /> : <span className="badge bg-secondary">none</span>}
-                      </td>
-                      <td>{new Date(req.createdAt).toLocaleDateString()}</td>
-                      <td>
-                        <div className="btn-group" role="group">
-                          <button
-                            className="btn btn-sm btn-outline-primary"
-                            disabled={!payment}
-                            onClick={() => payment && setViewingPayment(payment)}
-                            title={payment ? 'View payment details' : 'No payment attached'}
-                          >
-                            <i className="fas fa-receipt"></i>
-                          </button>
-                          <button
-                            className="btn btn-sm btn-success"
-                            disabled={actingId === req._id}
-                            onClick={() => handleApprove(req._id)}
-                            title="Verify payment & approve"
-                          >
-                            <i className="fas fa-check"></i>
-                          </button>
-                          <button
-                            className="btn btn-sm btn-danger"
-                            disabled={actingId === req._id}
-                            onClick={() => { setRejectingId(req._id); setRejectionReason(''); }}
-                            title="Reject"
-                          >
-                            <i className="fas fa-times"></i>
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
+        <DataTable<RequestRow>
+          columns={columns}
+          rows={requests}
+          rowKey={(req) => req._id}
+          title={(
+            <>
+              Pending Subscription Requests
+              {!loading && <Badge tone="neutral" className="ms-2">{requests.length}</Badge>}
+            </>
+          )}
+          loading={loading}
+          search={{
+            placeholder: 'Search by agent, email or transaction…',
+            // The searchable text is nested under agentId and the attached
+            // payment, so this needs a matcher rather than a list of keys.
+            match: (req, query) => {
+              const agent = typeof req.agentId === 'object' ? req.agentId : null;
+              const payment = (req as unknown as { payment?: Payment | null }).payment || null;
+              return [agent?.fullName, agent?.email, payment?.transactionNumber, payment?.senderAccountName]
+                .some((value) => String(value ?? '').toLowerCase().includes(query));
+            },
+          }}
+          pagination={{ noun: 'requests' }}
+          emptyState={{
+            icon: 'fas fa-inbox',
+            title: 'No pending requests',
+            description: 'All subscription requests have been reviewed.',
+          }}
+        />
       </div>
 
       {viewingPayment && (
@@ -228,12 +272,10 @@ const SubscriptionRequestsPanel: React.FC = () => {
         onConfirm={handleReject}
         onCancel={() => setRejectingId(null)}
       >
-        <label htmlFor="sub-rejection-reason" className="form-label fw-semibold">
-          Reason <span className="text-muted fw-normal">(shown to the agent)</span>
-        </label>
-        <textarea
+        <Textarea
           id="sub-rejection-reason"
-          className="form-control"
+          label="Reason"
+          hint="Shown to the agent."
           rows={3}
           value={rejectionReason}
           onChange={(event) => setRejectionReason(event.target.value)}
