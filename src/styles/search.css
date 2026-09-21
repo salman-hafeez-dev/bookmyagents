@@ -8,8 +8,8 @@
  */
 
 :root {
-  --bma-primary: var(--tg-theme-primary, #560ce3);
-  --bma-primary-dark: #4a0bc7;
+  --bma-primary: var(--ui-primary);
+  --bma-primary-dark: var(--ui-primary-dark);
   --bma-gradient: linear-gradient(135deg, var(--bma-primary) 0%, var(--bma-primary-dark) 100%);
 }
 
