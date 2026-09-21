@@ -1,5 +1,4 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { TableSkeleton } from '../../dashboard-admin/Skeleton';
 import PaymentDetailsModal from '../../common/PaymentDetailsModal';
 import PaymentStatusBadge from '../../common/PaymentStatusBadge';
 import InvoiceModal from '../../common/InvoiceModal';
@@ -14,6 +13,7 @@ import {
   type PaymentStatus,
   type AdminPaymentFilters,
 } from '../../../types/payment';
+import { Badge, Button, DataTable, IconButton, Input, Select, type DataTableColumn } from '../../ui';
 
 const STATUS_TABS: { key: PaymentStatus | 'all'; label: string }[] = [
   { key: 'all', label: 'All' },
@@ -40,6 +40,7 @@ const PaymentsManagement: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [pages, setPages] = useState(1);
+  const [total, setTotal] = useState(0);
   const [viewing, setViewing] = useState<Payment | null>(null);
   // The payment whose invoice PDF is open in the viewer.
   const [invoiceFor, setInvoiceFor] = useState<Payment | null>(null);
@@ -67,6 +68,7 @@ const PaymentsManagement: React.FC = () => {
       const response = await paymentService.getAdminPayments({ ...filters, page, limit: 20 });
       setPayments(response.data);
       setPages(response.pagination.pages);
+      setTotal(response.pagination.total);
       setCounts(response.filters || {});
     } catch (error) {
       showToast.error(extractApiError(error).message);
@@ -76,6 +78,17 @@ const PaymentsManagement: React.FC = () => {
   }, [filters, page]);
 
   useEffect(() => { fetchPayments(); }, [fetchPayments]);
+
+  // The search box is server-side, so it is debounced rather than firing a
+  // request per keystroke. Same approach as the user search in DashboardArea.
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const next = searchInput.trim() || undefined;
+      setFilters((previous) => (previous.search === next ? previous : { ...previous, search: next }));
+      setPage(1);
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [searchInput]);
 
   const setFilter = (patch: Partial<AdminPaymentFilters>) => {
     setFilters((previous) => ({ ...previous, ...patch }));
@@ -93,12 +106,90 @@ const PaymentsManagement: React.FC = () => {
     || (filters.status && filters.status !== 'all')
   );
 
+  const columns: DataTableColumn<Payment>[] = [
+    {
+      key: 'agent',
+      header: 'Agent',
+      render: (payment) => (
+        <>
+          <span className="fw-semibold">{nameOf(payment.agent)}</span>
+          {payment.agent?.email && <small className="d-block text-muted">{payment.agent.email}</small>}
+        </>
+      ),
+    },
+    { key: 'plan', header: 'Plan', nowrap: true, render: (payment) => payment.planNameSnapshot },
+    {
+      key: 'amount',
+      header: 'Amount',
+      nowrap: true,
+      render: (payment) => formatAmount(payment.amount, payment.currency),
+    },
+    {
+      key: 'transaction',
+      header: 'Transaction',
+      hideBelow: 'lg',
+      render: (payment) => <code className="small">{payment.transactionNumber}</code>,
+    },
+    {
+      key: 'status',
+      header: 'Status',
+      nowrap: true,
+      render: (payment) => <PaymentStatusBadge status={payment.status} />,
+    },
+    {
+      key: 'paidOn',
+      header: 'Paid on',
+      nowrap: true,
+      hideBelow: 'md',
+      render: (payment) => (
+        <span className="text-muted">{new Date(payment.submittedAt).toLocaleDateString()}</span>
+      ),
+    },
+    {
+      key: 'verifiedBy',
+      header: 'Verified by',
+      hideBelow: 'lg',
+      render: (payment) => (
+        <span className="text-muted">
+          {nameOf(payment.reviewer)}
+          {payment.verifiedAt && (
+            <small className="d-block">{new Date(payment.verifiedAt).toLocaleDateString()}</small>
+          )}
+        </span>
+      ),
+    },
+    {
+      key: 'invoice',
+      header: 'Invoice',
+      hideBelow: 'lg',
+      render: (payment) => (payment.invoice ? (
+        <Button variant="link" onClick={() => setInvoiceFor(payment)}>
+          {payment.invoice.invoiceNumber}
+        </Button>
+      ) : <span className="text-muted">—</span>),
+    },
+    {
+      key: 'actions',
+      header: '',
+      align: 'right',
+      width: '64px',
+      render: (payment) => (
+        <div className="ui-actions">
+          <IconButton
+            icon="far fa-eye"
+            label="View payment details"
+            onClick={() => setViewing(payment)}
+          />
+        </div>
+      ),
+    },
+  ];
+
   return (
     <div className="dashboard-card">
-      <div className="card-header">
-        <h4>Payments</h4>
-      </div>
       <div className="card-body">
+        {/* Status stays a row of tabs rather than a dropdown: each carries a
+            count, which is the reason an admin opens this screen at all. */}
         <ul className="nav nav-pills flex-wrap gap-2 mb-20" role="tablist">
           {STATUS_TABS.map((tab) => (
             <li className="nav-item" key={tab.key} role="presentation">
@@ -111,171 +202,79 @@ const PaymentsManagement: React.FC = () => {
               >
                 {tab.label}
                 {counts[tab.key] !== undefined && (
-                  <span className="badge bg-light text-dark ms-2">{counts[tab.key]}</span>
+                  <Badge tone="neutral" className="ms-2">{counts[tab.key]}</Badge>
                 )}
               </button>
             </li>
           ))}
         </ul>
 
-        <div className="row g-2 mb-20">
-          <div className="col-md-3">
-            <label htmlFor="pm-agent" className="form-label small text-muted mb-1">Agent</label>
-            <select
-              id="pm-agent" className="form-select form-select-sm"
-              value={filters.agentId || ''}
-              onChange={(event) => setFilter({ agentId: event.target.value || undefined })}
-            >
-              <option value="">All agents</option>
-              {agents.map((agent) => (
-                <option key={agent._id} value={agent._id}>{agent.fullName}</option>
-              ))}
-            </select>
-          </div>
-          <div className="col-md-2">
-            <label htmlFor="pm-plan" className="form-label small text-muted mb-1">Plan</label>
-            <select
-              id="pm-plan" className="form-select form-select-sm"
-              value={filters.subscriptionId || ''}
-              onChange={(event) => setFilter({ subscriptionId: event.target.value || undefined })}
-            >
-              <option value="">All plans</option>
-              {plans.map((plan) => (
-                <option key={plan._id} value={plan._id}>{plan.name}</option>
-              ))}
-            </select>
-          </div>
-          <div className="col-md-2">
-            <label htmlFor="pm-from" className="form-label small text-muted mb-1">From</label>
-            <input
-              id="pm-from" type="date" className="form-control form-control-sm"
-              value={filters.from || ''}
-              onChange={(event) => setFilter({ from: event.target.value || undefined })}
-            />
-          </div>
-          <div className="col-md-2">
-            <label htmlFor="pm-to" className="form-label small text-muted mb-1">To</label>
-            <input
-              id="pm-to" type="date" className="form-control form-control-sm"
-              value={filters.to || ''}
-              onChange={(event) => setFilter({ to: event.target.value || undefined })}
-            />
-          </div>
-          <div className="col-md-3">
-            <label htmlFor="pm-search" className="form-label small text-muted mb-1">
-              Transaction / sender
-            </label>
-            <form
-              className="d-flex gap-2"
-              onSubmit={(event) => { event.preventDefault(); setFilter({ search: searchInput.trim() || undefined }); }}
-            >
-              <input
-                id="pm-search" type="search" className="form-control form-control-sm"
-                value={searchInput}
-                onChange={(event) => setSearchInput(event.target.value)}
-                placeholder="TRX123…"
+        <DataTable<Payment>
+          columns={columns}
+          rows={payments}
+          rowKey={(payment) => payment._id}
+          title="Payments"
+          loading={loading}
+          search={{
+            placeholder: 'Transaction number or sender…',
+            value: searchInput,
+            onChange: setSearchInput,
+          }}
+          toolbar={(
+            <>
+              <Select
+                options={[
+                  { value: '', label: 'All agents' },
+                  ...agents.map((agent) => ({ value: agent._id, label: agent.fullName })),
+                ]}
+                value={filters.agentId || ''}
+                size="sm"
+                aria-label="Filter by agent"
+                onChange={(event) => setFilter({ agentId: event.target.value || undefined })}
               />
-              <button type="submit" className="btn btn-sm btn-outline-primary flex-shrink-0">Go</button>
-            </form>
-          </div>
-        </div>
-
-        {hasActiveFilters && (
-          <button type="button" className="btn btn-sm btn-link px-0 mb-2" onClick={clearFilters}>
-            Clear all filters
-          </button>
-        )}
-
-        {loading ? (
-          <TableSkeleton rows={5} columns={8} />
-        ) : payments.length === 0 ? (
-          <div className="empty-state">
-            <i className="fas fa-receipt" aria-hidden="true"></i>
-            <h5 className="mt-3 mb-2">No payments found</h5>
-            <p className="text-muted">
-              {hasActiveFilters ? 'No payment matches these filters.' : 'No payments have been submitted yet.'}
-            </p>
-          </div>
-        ) : (
-          <>
-            <div className="table-responsive">
-              <table className="table table-striped align-middle">
-                <thead>
-                  <tr>
-                    <th scope="col">Agent</th>
-                    <th scope="col">Plan</th>
-                    <th scope="col">Amount</th>
-                    <th scope="col">Transaction</th>
-                    <th scope="col">Status</th>
-                    <th scope="col">Paid On</th>
-                    <th scope="col">Verified By</th>
-                    <th scope="col">Invoice</th>
-                    <th scope="col" className="text-end">Details</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {payments.map((payment) => (
-                    <tr key={payment._id}>
-                      <td>
-                        {nameOf(payment.agent)}
-                        {payment.agent?.email && (
-                          <small className="d-block text-muted">{payment.agent.email}</small>
-                        )}
-                      </td>
-                      <td>{payment.planNameSnapshot}</td>
-                      <td>{formatAmount(payment.amount, payment.currency)}</td>
-                      <td><code className="small">{payment.transactionNumber}</code></td>
-                      <td>{<PaymentStatusBadge status={payment.status} />}</td>
-                      <td className="text-muted">{new Date(payment.submittedAt).toLocaleDateString()}</td>
-                      <td className="text-muted">
-                        {nameOf(payment.reviewer)}
-                        {payment.verifiedAt && (
-                          <small className="d-block">{new Date(payment.verifiedAt).toLocaleDateString()}</small>
-                        )}
-                      </td>
-                      <td>
-                        {payment.invoice ? (
-                          <button
-                            type="button" className="btn btn-sm btn-link p-0"
-                            onClick={() => setInvoiceFor(payment)}
-                          >
-                            {payment.invoice.invoiceNumber}
-                          </button>
-                        ) : <span className="text-muted">—</span>}
-                      </td>
-                      <td className="text-end">
-                        <button
-                          type="button" className="btn btn-sm btn-outline-secondary"
-                          onClick={() => setViewing(payment)}
-                        >
-                          View
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            {pages > 1 && (
-              <nav className="d-flex justify-content-between align-items-center mt-3" aria-label="Payment pages">
-                <button
-                  type="button" className="btn btn-outline-secondary btn-sm"
-                  onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page <= 1}
-                >
-                  Previous
-                </button>
-                <span className="text-muted">Page {page} of {pages}</span>
-                <button
-                  type="button" className="btn btn-outline-secondary btn-sm"
-                  onClick={() => setPage((p) => Math.min(pages, p + 1))} disabled={page >= pages}
-                >
-                  Next
-                </button>
-              </nav>
-            )}
-          </>
-        )}
+              <Select
+                options={[
+                  { value: '', label: 'All plans' },
+                  ...plans.map((plan) => ({ value: plan._id, label: plan.name })),
+                ]}
+                value={filters.subscriptionId || ''}
+                size="sm"
+                aria-label="Filter by plan"
+                onChange={(event) => setFilter({ subscriptionId: event.target.value || undefined })}
+              />
+              <Input
+                type="date"
+                size="sm"
+                aria-label="Paid from"
+                value={filters.from || ''}
+                onChange={(event) => setFilter({ from: event.target.value || undefined })}
+              />
+              <Input
+                type="date"
+                size="sm"
+                aria-label="Paid to"
+                value={filters.to || ''}
+                onChange={(event) => setFilter({ to: event.target.value || undefined })}
+              />
+              {hasActiveFilters && (
+                <Button variant="ghost" size="sm" icon="fas fa-xmark" onClick={clearFilters}>
+                  Clear
+                </Button>
+              )}
+            </>
+          )}
+          pagination={{ page, pages, total, limit: 20, onChange: setPage, noun: 'payments' }}
+          emptyState={{
+            icon: 'fas fa-receipt',
+            title: 'No payments found',
+            description: hasActiveFilters
+              ? 'No payment matches these filters.'
+              : 'No payments have been submitted yet.',
+            action: hasActiveFilters
+              ? <Button variant="outline" onClick={clearFilters}>Clear filters</Button>
+              : undefined,
+          }}
+        />
       </div>
 
       {viewing && <PaymentDetailsModal payment={viewing} onClose={() => setViewing(null)} />}
