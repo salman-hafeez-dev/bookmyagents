@@ -3,7 +3,8 @@ import { useConfirm } from '../../../contexts/ConfirmContext';
 import { useAuth } from '../../../contexts/AuthContext';
 import { blogService } from '../../../services/blogService';
 import { type Blog, type BlogFilters, type BlogStats } from '../../../types/blog';
-import AgentBlogList from './AgentBlogList';
+import BlogTable from './BlogTable';
+import { IconButton } from '../../ui';
 import AgentBlogDetail from './AgentBlogDetail';
 import AgentBlogForm from './AgentBlogForm';
 import BlogStatsCard from './BlogStatsCard';
@@ -147,7 +148,8 @@ const AgentBlogManagement: React.FC = () => {
 
             <div className="row">
                 <div className="col-12">
-                    <AgentBlogList
+                    <BlogTable
+                        title="My Blog Posts"
                         blogs={blogs}
                         loading={loading}
                         filters={filters}
@@ -155,9 +157,29 @@ const AgentBlogManagement: React.FC = () => {
                         onFilterChange={handleFilterChange}
                         onPageChange={handlePageChange}
                         onViewDetail={handleViewDetail}
-                        onEdit={handleEditBlog}
-                        onDelete={handleDeleteBlog}
                         onAddBlog={handleAddBlog}
+                        rowActions={(blog) => (
+                            <>
+                                {/* Editable until it has been ruled on; deletable
+                                    only once rejected — the same rules the
+                                    previous AgentBlogList encoded. */}
+                                {blog.status !== 'approved' && blog.status !== 'rejected' && (
+                                    <IconButton
+                                        icon="far fa-pen-to-square"
+                                        label="Edit"
+                                        onClick={() => handleEditBlog(blog)}
+                                    />
+                                )}
+                                {blog.status === 'rejected' && (
+                                    <IconButton
+                                        icon="far fa-trash-can"
+                                        label="Delete"
+                                        tone="danger"
+                                        onClick={() => handleDeleteBlog(blog._id)}
+                                    />
+                                )}
+                            </>
+                        )}
                     />
                 </div>
             </div>
