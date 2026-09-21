@@ -3,7 +3,7 @@ import HeaderThree from "../../../layouts/headers/HeaderThree"
 import BreadCrumb from "../../common/BreadCrumb"
 import AboutArea from "./AboutArea"
 import Choose from "./Choose"
-import Cta from "./Cta"
+// import Cta from "./Cta"
 
 const About = () => {
    return (
@@ -13,7 +13,7 @@ const About = () => {
             <BreadCrumb title="About Us" sub_title="About Us" />
             <AboutArea />
             <Choose />
-            <Cta />
+            {/* <Cta /> */}
          </main>
          <FooterSix />
       </>
