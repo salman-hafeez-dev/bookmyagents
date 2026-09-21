@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import Modal from '../../common/Modal';
-import { TableSkeleton } from '../../dashboard-admin/Skeleton';
+import { Badge, Button, DataTable, IconButton, type DataTableColumn } from '../../ui';
 import { paymentAccountService } from '../../../services/paymentService';
 import { extractApiError } from '../../../services/agentProfileService';
 import { showToast } from '../../../utils/toast';
@@ -124,86 +124,85 @@ const PaymentAccountSettings: React.FC = () => {
     </div>
   );
 
+  const columns: DataTableColumn<PaymentAccount>[] = [
+    { key: 'bank', header: 'Bank', render: (a) => <span className="fw-semibold">{a.bankName}</span> },
+    { key: 'title', header: 'Account title', hideBelow: 'md', render: (a) => a.accountTitle },
+    {
+      key: 'number',
+      header: 'Account number',
+      nowrap: true,
+      render: (a) => <code className="small">{a.accountNumber}</code>,
+    },
+    {
+      key: 'iban',
+      header: 'IBAN',
+      nowrap: true,
+      hideBelow: 'lg',
+      render: (a) => <code className="small">{a.iban || '—'}</code>,
+    },
+    {
+      key: 'status',
+      header: 'Status',
+      nowrap: true,
+      render: (a) => (a.isActive
+        ? <Badge tone="success" dot>Active</Badge>
+        : <Badge tone="neutral" dot>Inactive</Badge>),
+    },
+    {
+      key: 'actions',
+      header: '',
+      align: 'right',
+      width: '132px',
+      render: (account) => (
+        <div className="ui-actions">
+          {!account.isActive && (
+            <IconButton
+              icon="far fa-circle-check"
+              label="Make this the active account"
+              tone="success"
+              onClick={() => activate(account)}
+            />
+          )}
+          <IconButton
+            icon="far fa-pen-to-square"
+            label="Edit"
+            onClick={() => openEdit(account)}
+          />
+          <IconButton
+            icon="far fa-trash-can"
+            label={account.isActive ? 'Activate another account before deleting this one' : 'Delete'}
+            tone="danger"
+            onClick={() => remove(account)}
+            disabled={account.isActive}
+          />
+        </div>
+      ),
+    },
+  ];
+
   return (
     <div className="dashboard-card">
-      <div className="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
-        <h4 className="mb-0">Payment Account</h4>
-        <button type="button" className="btn btn-sm btn-primary" onClick={openCreate}>
-          <i className="fas fa-plus me-2" aria-hidden="true" />Add account
-        </button>
-      </div>
       <div className="card-body">
         <p className="text-muted">
           These are the bank details agents see when paying for a plan. Exactly one account is active at a
           time — activating another switches it over immediately, with no redeploy.
         </p>
 
-        {loading ? (
-          <TableSkeleton rows={2} columns={5} />
-        ) : accounts.length === 0 ? (
-          <div className="empty-state">
-            <i className="fas fa-university" aria-hidden="true"></i>
-            <h5 className="mt-3 mb-2">No payment account configured</h5>
-            <p className="text-muted">
-              Agents can&apos;t pay for a plan until you add one — the payment modal will tell them to contact
-              support instead of showing an empty form.
-            </p>
-          </div>
-        ) : (
-          <div className="table-responsive">
-            <table className="table table-striped align-middle">
-              <thead>
-                <tr>
-                  <th scope="col">Bank</th>
-                  <th scope="col">Account title</th>
-                  <th scope="col">Account number</th>
-                  <th scope="col">IBAN</th>
-                  <th scope="col">Status</th>
-                  <th scope="col" className="text-end">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {accounts.map((account) => (
-                  <tr key={account._id}>
-                    <td>{account.bankName}</td>
-                    <td>{account.accountTitle}</td>
-                    <td><code className="small">{account.accountNumber}</code></td>
-                    <td><code className="small">{account.iban || '—'}</code></td>
-                    <td>
-                      {account.isActive
-                        ? <span className="badge bg-success">Active</span>
-                        : <span className="badge bg-secondary">Inactive</span>}
-                    </td>
-                    <td className="text-end">
-                      {!account.isActive && (
-                        <button
-                          type="button" className="btn btn-sm btn-outline-success me-2"
-                          onClick={() => activate(account)}
-                        >
-                          Activate
-                        </button>
-                      )}
-                      <button
-                        type="button" className="btn btn-sm btn-outline-secondary me-2"
-                        onClick={() => openEdit(account)}
-                      >
-                        Edit
-                      </button>
-                      <button
-                        type="button" className="btn btn-sm btn-outline-danger"
-                        onClick={() => remove(account)}
-                        disabled={account.isActive}
-                        title={account.isActive ? 'Activate another account before deleting this one' : 'Delete'}
-                      >
-                        Delete
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+        <DataTable<PaymentAccount>
+          columns={columns}
+          rows={accounts}
+          rowKey={(account, index) => account._id || `new-${index}`}
+          title="Payment Account"
+          loading={loading}
+          search={{ placeholder: 'Search by bank or account title…', keys: ['bankName', 'accountTitle'] }}
+          actions={<Button icon="fas fa-plus" size="sm" onClick={openCreate}>Add account</Button>}
+          emptyState={{
+            icon: 'fas fa-university',
+            title: 'No payment account configured',
+            description: "Agents can't pay for a plan until you add one — the payment modal will tell them to contact support instead of showing an empty form.",
+            action: <Button onClick={openCreate}>Add account</Button>,
+          }}
+        />
       </div>
 
       {editing && (
