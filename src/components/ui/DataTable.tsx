@@ -67,7 +67,14 @@ export interface DataTableProps<Row> {
     placeholder?: string;
     value?: string;
     onChange?: (value: string) => void;
+    /** Top-level fields to match against, for flat rows. */
     keys?: (keyof Row)[];
+    /**
+     * Custom matcher, for rows whose searchable text is nested or derived —
+     * an agent's name living under `agentId`, say. Takes precedence over
+     * `keys`. The query arrives already trimmed and lower-cased.
+     */
+    match?: (row: Row, query: string) => boolean;
   };
 
   /**
@@ -120,10 +127,15 @@ function DataTable<Row>({
   const query = isControlled ? (search?.value ?? '') : internalQuery;
 
   const filteredRows = useMemo(() => {
-    if (isControlled || !search?.keys || !query.trim()) return rows;
+    if (isControlled || !query.trim()) return rows;
     const needle = query.trim().toLowerCase();
-    return rows.filter((row) =>
-      search.keys!.some((key) => String(row[key] ?? '').toLowerCase().includes(needle)));
+
+    if (search?.match) return rows.filter((row) => search.match!(row, needle));
+    if (search?.keys) {
+      return rows.filter((row) =>
+        search.keys!.some((key) => String(row[key] ?? '').toLowerCase().includes(needle)));
+    }
+    return rows;
   }, [rows, query, isControlled, search]);
 
   // --- paging -------------------------------------------------------------
