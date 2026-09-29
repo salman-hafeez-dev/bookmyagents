@@ -80,7 +80,7 @@ const SiteFooter: React.FC<SiteFooterProps> = ({ variant = 'three' }) => {
           <div className={`tg-footer-top ${variant === 'three' ? 'mb-40' : 'pb-40'}`}>
             <div className="row">
               {/* Brand */}
-              <div className="col-xl-3 col-lg-3 col-md-6 col-sm-6">
+              <div className="col-xl-3 col-lg-3 col-md-6 col-sm-6 col-12">
                 <div className="tg-footer-widget mb-40">
                   <div className="tg-footer-logo mb-20">
                     <Link to="/">
@@ -103,10 +103,25 @@ const SiteFooter: React.FC<SiteFooterProps> = ({ variant = 'three' }) => {
                 </div>
               </div>
 
+              {/* Legal pages — published documents only, admin-ordered */}
+              <div className="col-xl-3 col-lg-3 col-md-6 col-sm-6 col-12">
+                <div className="tg-footer-widget tg-footer-link mb-40">
+                  <h3 className="tg-footer-widget-title mb-25">Company</h3>
+                  <ul>
+                    <li><Link to="/contact">Contact Us</Link></li>
+                    {legalPages.map((page) => (
+                      <li key={page.slug}>
+                        <Link to={`/legal/${page.slug}`}>{page.title}</Link>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+
               {/* Quick links */}
               {quickLinks.length > 0 && (
-                <div className="col-xl-3 col-lg-3 col-md-6 col-sm-6">
-                  <div className={`tg-footer-widget tg-footer-link mb-40${variant === 'three' ? ' ml-80' : ' ml-80'}`}>
+                <div className="col-xl-3 col-lg-3 col-md-6 col-sm-6 col-12">
+                  <div className={`tg-footer-widget tg-footer-link mb-40`}>
                     <h3 className="tg-footer-widget-title mb-25">Quick Links</h3>
                     <ul>
                       {quickLinks.map((link) => (
@@ -121,7 +136,7 @@ const SiteFooter: React.FC<SiteFooterProps> = ({ variant = 'three' }) => {
 
               {/* Contact details */}
               {hasInfo && (
-                <div className="col-xl-3 col-lg-3 col-md-6 col-sm-6">
+                <div className="col-xl-3 col-lg-3 col-md-6 col-sm-6 col-12">
                   <div className="tg-footer-widget tg-footer-info mb-40">
                     <h3 className="tg-footer-widget-title mb-25">Information</h3>
                     <address className="mb-0">
@@ -129,14 +144,14 @@ const SiteFooter: React.FC<SiteFooterProps> = ({ variant = 'three' }) => {
                         {address.length > 0 && (
                           <li>
                             {settings?.mapLink ? (
-                              <a className="d-flex" href={settings.mapLink} target="_blank" rel="noopener noreferrer">
+                              <a className="d-flex" href={settings.mapLink} target="_blank" rel="noopener noreferrer" style={{ wordBreak: 'break-word' }}>
                                 <span className="mr-15"><LocationIcon /></span>
                                 <span>{address.map((line, index) => (
                                   <React.Fragment key={line}>{index > 0 && <br />}{line}</React.Fragment>
                                 ))}</span>
                               </a>
                             ) : (
-                              <span className="d-flex">
+                              <span className="d-flex" style={{ wordBreak: 'break-word' }}>
                                 <span className="mr-15"><LocationIcon /></span>
                                 <span>{address.map((line, index) => (
                                   <React.Fragment key={line}>{index > 0 && <br />}{line}</React.Fragment>
@@ -148,7 +163,7 @@ const SiteFooter: React.FC<SiteFooterProps> = ({ variant = 'three' }) => {
 
                         {phones.map((phone) => (
                           <li key={phone}>
-                            <a className="d-flex" href={telLink(phone) || undefined}>
+                            <a className="d-flex" href={telLink(phone) || undefined} style={{ wordBreak: 'break-word' }}>
                               <span className="mr-15">
                                 <i className="fa-sharp text-white fa-solid fa-phone" aria-hidden="true"></i>
                               </span>
@@ -159,7 +174,7 @@ const SiteFooter: React.FC<SiteFooterProps> = ({ variant = 'three' }) => {
 
                         {waLink && (
                           <li>
-                            <a className="d-flex" href={waLink} target="_blank" rel="noopener noreferrer">
+                            <a className="d-flex" href={waLink} target="_blank" rel="noopener noreferrer" style={{ wordBreak: 'break-word' }}>
                               <span className="mr-15">
                                 <i className="fa-brands fa-whatsapp text-white" aria-hidden="true"></i>
                               </span>
@@ -170,7 +185,7 @@ const SiteFooter: React.FC<SiteFooterProps> = ({ variant = 'three' }) => {
 
                         {emails.map((email) => (
                           <li key={email}>
-                            <a className="d-flex" href={mailtoLink(email) || undefined}>
+                            <a className="d-flex" href={mailtoLink(email) || undefined} style={{ wordBreak: 'break-word' }}>
                               <span className="mr-15">
                                 <i className="fa-solid fa-envelope text-white" aria-hidden="true"></i>
                               </span>
@@ -182,7 +197,7 @@ const SiteFooter: React.FC<SiteFooterProps> = ({ variant = 'three' }) => {
                         {hours.length > 0 && (
                           <li className="d-flex">
                             <span className="mr-15"><ClockIcon /></span>
-                            <p className="mb-0">
+                            <p className="mb-0" style={{ wordBreak: 'break-word' }}>
                               {hours.map((entry) => (
                                 <React.Fragment key={entry.label}>
                                   {entry.label}: <span className="text-white d-inline-block">{entry.value}</span><br />
@@ -196,21 +211,6 @@ const SiteFooter: React.FC<SiteFooterProps> = ({ variant = 'three' }) => {
                   </div>
                 </div>
               )}
-
-              {/* Legal pages — published documents only, admin-ordered */}
-              <div className="col-xl-3 col-lg-3 col-md-6 col-sm-6">
-                <div className="tg-footer-widget tg-footer-link mb-40">
-                  <h3 className="tg-footer-widget-title mb-25">Company</h3>
-                  <ul>
-                    <li><Link to="/contact">Contact Us</Link></li>
-                    {legalPages.map((page) => (
-                      <li key={page.slug}>
-                        <Link to={`/legal/${page.slug}`}>{page.title}</Link>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
             </div>
           </div>
         </div>

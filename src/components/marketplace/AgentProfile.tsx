@@ -161,6 +161,7 @@ const AgentProfile: React.FC = () => {
                   agentId={agent._id}
                   onRequestQuote={() => setQuoteOpen(true)}
                   size="compact"
+                  className="flex-column flex-sm-row flex-wrap"
                 />
               </div>
             </div>
@@ -302,6 +303,7 @@ const AgentProfile: React.FC = () => {
                   message={enquiry}
                   agentId={agent._id}
                   onRequestQuote={() => setQuoteOpen(true)}
+                  className="flex-column flex-md-row"
                 />
               </div>
             </div>

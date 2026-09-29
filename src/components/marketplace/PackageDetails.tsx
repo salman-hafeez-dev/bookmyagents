@@ -274,7 +274,7 @@ const PackageDetails: React.FC = () => {
             message={enquiry}
             agentId={agent?._id}
             packageId={pkg._id}
-            className="flex-grow-1"
+            className="flex-grow-1 flex-wrap justify-content-end"
             size="compact"
           />
         </div>

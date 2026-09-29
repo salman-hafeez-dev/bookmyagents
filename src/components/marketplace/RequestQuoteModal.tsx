@@ -106,14 +106,14 @@ const RequestQuoteModal: React.FC<RequestQuoteModalProps> = ({
       busy={isSubmitting}
       onSubmit={isDone ? undefined : handleSubmit}
       footer={isDone ? (
-        <button type="button" className="bma-search-submit px-4" onClick={onClose}>Done</button>
+        <button type="button" className="bma-search-submit px-4 w-100 w-sm-auto" onClick={onClose}>Done</button>
       ) : (
-        <>
-          <button type="button" className="btn btn-outline-secondary" onClick={onClose}>Cancel</button>
-          <button type="submit" className="bma-search-submit px-4" disabled={isSubmitting}>
+        <div className="d-flex flex-column flex-sm-row gap-2 w-100 justify-content-end">
+          <button type="button" className="btn btn-outline-secondary w-100 w-sm-auto" onClick={onClose}>Cancel</button>
+          <button type="submit" className="bma-search-submit px-4 w-100 w-sm-auto" disabled={isSubmitting}>
             {isSubmitting ? 'Sending…' : 'Send request'}
           </button>
-        </>
+        </div>
       )}
     >
         {isDone ? (
